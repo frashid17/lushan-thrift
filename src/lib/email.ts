@@ -113,13 +113,17 @@ async function sendMail(opts: { to: string; subject: string; html: string; text:
     return;
   }
 
-  await transporter.sendMail({
-    from,
-    to: opts.to,
-    subject: opts.subject,
-    text: opts.text,
-    html: opts.html,
-  });
+  try {
+    await transporter.sendMail({
+      from,
+      to: opts.to,
+      subject: opts.subject,
+      text: opts.text,
+      html: opts.html,
+    });
+  } catch (err) {
+    console.error('[email] sendMail failed', err);
+  }
 }
 
 /** Full HTML document: table layout + inline styles for major email clients */

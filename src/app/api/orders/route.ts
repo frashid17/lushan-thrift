@@ -123,8 +123,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  await admin.from('cart_items').delete().eq('user_id', userId);
-
+  // Admin email is best-effort. SMTP failures on Vercel must not fail checkout after the
+  // order exists — previously we cleared the cart before email, so a thrown send left the
+  // user with an empty cart and a generic error.
   const adminEmail = process.env.ADMIN_ORDERS_EMAIL?.trim();
   if (adminEmail) {
     const lines = safeItems.map((item) => ({
@@ -132,17 +133,26 @@ export async function POST(request: NextRequest) {
       qty: item.quantity,
       lineTotal: Math.round(Number(item.product?.price ?? 0) * item.quantity * 100) / 100,
     }));
-    await sendAdminNewOrderEmail({
-      to: adminEmail,
-      orderId,
-      customerName,
-      customerPhone,
-      customerEmail,
-      totalKes: Math.round(subtotal * 100) / 100,
-      lines,
-      deliveryLabel: deliveryAddressLabel,
-      deliveryType,
-    });
+    try {
+      await sendAdminNewOrderEmail({
+        to: adminEmail,
+        orderId,
+        customerName,
+        customerPhone,
+        customerEmail,
+        totalKes: Math.round(subtotal * 100) / 100,
+        lines,
+        deliveryLabel: deliveryAddressLabel,
+        deliveryType,
+      });
+    } catch (err) {
+      console.error('[POST /api/orders] Admin new-order email failed', err);
+    }
+  }
+
+  const { error: cartClearError } = await admin.from('cart_items').delete().eq('user_id', userId);
+  if (cartClearError) {
+    console.error('[POST /api/orders] Failed to clear cart after order', cartClearError);
   }
 
   return NextResponse.json({ orderId });
