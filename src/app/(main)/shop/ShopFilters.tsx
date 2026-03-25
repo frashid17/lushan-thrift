@@ -25,20 +25,23 @@ export function ShopFilters({ currentCategory }: { currentCategory?: string }) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      {CATEGORIES.map((cat) => (
-        <button
-          key={cat}
-          type="button"
-          onClick={() => setCategory(cat)}
-          className={`rounded-full px-4 py-2 text-sm font-medium ${
-            (cat === 'All' && !currentCategory) || currentCategory === cat
-              ? 'bg-stone-900 text-white'
-              : 'bg-stone-200 text-stone-700 hover:bg-stone-300'
-          }`}
-        >
-          {cat}
-        </button>
-      ))}
+      {CATEGORIES.map((cat) => {
+        const active = (cat === 'All' && !currentCategory) || currentCategory === cat;
+        return (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => setCategory(cat)}
+            className={`rounded-full px-4 py-2.5 text-sm font-semibold shadow-sm transition active:scale-[0.98] ${
+              active
+                ? 'bg-stone-900 text-white ring-2 ring-stone-900 ring-offset-2'
+                : 'border border-stone-200/90 bg-white text-stone-700 ring-1 ring-stone-100 hover:border-stone-300 hover:bg-stone-50'
+            }`}
+          >
+            {cat}
+          </button>
+        );
+      })}
     </div>
   );
 }
