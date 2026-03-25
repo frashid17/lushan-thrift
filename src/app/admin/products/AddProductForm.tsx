@@ -3,14 +3,30 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import toast from 'react-hot-toast';
 
 const CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', 'Accessories'];
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'One Size'];
 
+async function parseJsonResponse(res: Response): Promise<Record<string, unknown> | null> {
+  const ct = res.headers.get('content-type') ?? '';
+  if (!ct.includes('application/json')) return null;
+  try {
+    return (await res.json()) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+function apiErrorMessage(body: Record<string, unknown> | null, fallback: string): string {
+  const err = body?.error;
+  if (typeof err !== 'string' || err.length > 200 || /[<>]/.test(err)) return fallback;
+  return err;
+}
+
 export function AddProductForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState('');
   const [form, setForm] = useState({
     name: '',
@@ -25,16 +41,24 @@ export function AddProductForm() {
     const file = e.target.files?.[0];
     if (!file) return;
     setLoading(true);
+    setFormError(null);
     try {
       const fd = new FormData();
       fd.append('file', file);
       const res = await fetch('/api/upload', { method: 'POST', body: fd });
-      if (!res.ok) throw new Error('Upload failed');
-      const data = await res.json();
-      setImageUrl(data.url);
-      toast.success('Image uploaded');
+      const body = await parseJsonResponse(res);
+      if (!res.ok) {
+        setFormError(apiErrorMessage(body, 'Image upload failed.'));
+        return;
+      }
+      const url = body?.url;
+      if (typeof url !== 'string' || !url) {
+        setFormError('Image upload failed.');
+        return;
+      }
+      setImageUrl(url);
     } catch {
-      toast.error('Image upload failed');
+      setFormError('Image upload failed.');
     } finally {
       setLoading(false);
     }
@@ -42,12 +66,13 @@ export function AddProductForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError(null);
     if (!imageUrl) {
-      toast.error('Please upload an image');
+      setFormError('Please upload an image.');
       return;
     }
     if (!form.sizes.length) {
-      toast.error('Select at least one size');
+      setFormError('Select at least one size.');
       return;
     }
     setLoading(true);
@@ -62,15 +87,15 @@ export function AddProductForm() {
           image_url: imageUrl,
         }),
       });
+      const body = await parseJsonResponse(res);
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed');
+        setFormError(apiErrorMessage(body, 'Could not add product.'));
+        return;
       }
-      toast.success('Product added');
       router.push('/admin');
       router.refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to add product');
+    } catch {
+      setFormError('Could not add product.');
     } finally {
       setLoading(false);
     }
@@ -78,6 +103,11 @@ export function AddProductForm() {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-xl space-y-4 rounded-lg border border-stone-200 bg-white p-6">
+      {formError && (
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+          {formError}
+        </p>
+      )}
       <div>
         <label className="block text-sm font-medium text-stone-700">Image</label>
         <input
