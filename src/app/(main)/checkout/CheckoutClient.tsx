@@ -93,18 +93,21 @@ export function CheckoutClient({
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-      {error && (
+        {error && (
         <p
-          className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
           role="alert"
         >
           {error}
         </p>
       )}
 
-      <section className="space-y-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-700">
-          1. Delivery location
+      <section className="space-y-3 rounded-2xl border border-stone-200/90 bg-white p-4 shadow-sm ring-1 ring-stone-100/80 sm:p-5">
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-stone-500">
+          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-stone-900 text-[12px] font-bold text-white">
+            1
+          </span>
+          Delivery location
         </h2>
         <p className="text-xs text-stone-600 sm:text-sm">
           Pin where you want pickup or delivery. You can use your current location or tap the map.
@@ -125,15 +128,18 @@ export function CheckoutClient({
             type="text"
             value={addressNote}
             onChange={(e) => setAddressNote(e.target.value)}
-            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900"
+            className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm text-stone-900"
             placeholder="e.g. Near City Mall, apartment name, gate code…"
           />
         </div>
       </section>
 
-      <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-700">
-          2. Your details
+      <section className="space-y-4 rounded-2xl border border-stone-200/90 bg-white p-4 shadow-sm ring-1 ring-stone-100/80 sm:p-5">
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-stone-500">
+          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-stone-900 text-[12px] font-bold text-white">
+            2
+          </span>
+          Your details
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1">
@@ -143,7 +149,7 @@ export function CheckoutClient({
               required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900"
+              className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm text-stone-900"
               placeholder="e.g. Aisha Mwangi"
             />
           </div>
@@ -154,7 +160,7 @@ export function CheckoutClient({
               required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900"
+              className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm text-stone-900"
               placeholder="e.g. 07xx xxx xxx"
             />
           </div>
@@ -169,7 +175,7 @@ export function CheckoutClient({
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full max-w-md rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900"
+            className="w-full max-w-md rounded-xl border border-stone-300 px-3 py-2.5 text-sm text-stone-900"
             placeholder="We’ll email you when payment is approved"
           />
           <p className="text-xs text-stone-500">
@@ -179,7 +185,7 @@ export function CheckoutClient({
         <div className="space-y-2">
           <span className="block text-sm font-medium text-stone-800">Delivery option</span>
           <div className="grid gap-2 text-sm text-stone-700 sm:grid-cols-2">
-            <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-300 bg-white px-3 py-2">
+            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/50 px-3 py-3 transition hover:border-stone-300 hover:bg-white">
               <input
                 type="radio"
                 name="delivery"
@@ -191,7 +197,7 @@ export function CheckoutClient({
                 <span className="text-xs text-stone-500">We&apos;ll confirm pickup details after payment.</span>
               </span>
             </label>
-            <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-300 bg-white px-3 py-2">
+            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-stone-200 bg-stone-50/50 px-3 py-3 transition hover:border-stone-300 hover:bg-white">
               <input
                 type="radio"
                 name="delivery"
@@ -207,9 +213,12 @@ export function CheckoutClient({
         </div>
       </section>
 
-      <section className="space-y-3 rounded-xl border border-stone-200 bg-amber-50/80 p-4 sm:p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-800">
-          3. Pay with M-Pesa (Buy goods)
+      <section className="space-y-3 rounded-2xl border border-amber-200/80 bg-gradient-to-br from-amber-50/95 to-amber-100/40 p-4 ring-1 ring-amber-100/60 sm:p-5">
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-950/80">
+          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-600 text-[12px] font-bold text-white">
+            3
+          </span>
+          Pay with M-Pesa (Buy goods)
         </h2>
         <ol className="list-decimal space-y-2 pl-4 text-sm text-stone-800">
           <li>
