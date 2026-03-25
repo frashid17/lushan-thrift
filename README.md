@@ -52,6 +52,8 @@ In the Supabase SQL Editor, run the migrations in order:
 1. **Initial schema:** paste and run the contents of `supabase/migrations/001_initial_schema.sql`.
 2. **Orders (checkout):** paste and run the contents of `supabase/migrations/002_orders.sql`.
 3. **M-Pesa manual checkout:** paste and run `supabase/migrations/003_checkout_mpesa.sql` (payment settings table, order location & payment fields).
+4. **Floating contact:** paste and run `supabase/migrations/004_contact_settings.sql` (call / WhatsApp numbers for the storefront).
+5. **Footer social links:** paste and run `supabase/migrations/005_contact_social_urls.sql` (Instagram / Facebook / TikTok URLs on the admin Contact page).
 
 Optional: run `supabase/seed.sql` to insert sample products (replace image URLs with your Cloudinary URLs).
 
