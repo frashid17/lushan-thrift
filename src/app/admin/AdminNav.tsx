@@ -16,8 +16,8 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="no-scrollbar -mx-4 overflow-x-auto border-b border-stone-200 bg-white px-4">
-      <div className="flex gap-3 py-2 text-sm">
+    <nav className="no-scrollbar -mx-1 overflow-x-auto border-b border-stone-200 bg-white px-2 sm:-mx-0 sm:px-0">
+      <div className="flex gap-2 py-2.5 text-sm sm:gap-3">
         {links.map((link) => {
           const isActive =
             pathname === link.href ||
@@ -26,7 +26,7 @@ export function AdminNav() {
             <Link
               key={link.href}
               href={link.href}
-              className={`whitespace-nowrap rounded-full px-3 py-1.5 font-medium ${
+              className={`whitespace-nowrap rounded-full px-3 py-2 text-[13px] font-medium sm:py-1.5 sm:text-sm ${
                 isActive
                   ? 'bg-stone-900 text-white'
                   : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
