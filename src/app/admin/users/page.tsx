@@ -1,5 +1,6 @@
 import { clerkClient } from '@clerk/nextjs/server';
 import { makeAdmin, removeAdmin } from './actions';
+import { AdminCallout, AdminHero, AdminStatBadge } from '../AdminChrome';
 
 export default async function AdminUsersPage() {
   const client = await clerkClient();
@@ -11,66 +12,45 @@ export default async function AdminUsersPage() {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Customers overview */}
-      <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-stone-900 sm:text-3xl">Users</h1>
-          <p className="mt-1 text-sm text-stone-600 sm:text-base">
-            See who&apos;s shopping with Lushan Thrift and manage who has admin access.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-2 text-sm sm:text-base">
-          <div className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-left shadow-sm">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-stone-500">
-              Customers
-            </p>
-            <p className="mt-1 text-lg font-semibold text-stone-900">
-              {users.length}
-            </p>
-          </div>
-          <div className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-left shadow-sm">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-stone-500">
-              Admins
-            </p>
-            <p className="mt-1 text-lg font-semibold text-stone-900">
-              {adminUsers.length}
-            </p>
-          </div>
-        </div>
-      </section>
+    <div className="space-y-8">
+      <AdminHero
+        eyebrow="Access"
+        title="Users"
+        description="Everyone who has signed in with Clerk. Promote trusted people to admin or remove admin access from a row."
+        right={
+          <>
+            <AdminStatBadge label="Customers" value={users.length} sub="Clerk accounts" />
+            <AdminStatBadge label="Admins" value={adminUsers.length} sub="Dashboard access" />
+          </>
+        }
+      />
 
       {!users.length ? (
-        <p className="rounded-xl border border-stone-200 bg-white p-6 text-center text-sm text-stone-500">
-          No users yet. Once customers sign in with Clerk they will appear here.
-        </p>
+        <div className="rounded-2xl border border-dashed border-stone-300/90 bg-stone-50/60 px-6 py-14 text-center text-sm text-stone-500">
+          No users yet. When customers sign in they will appear here.
+        </div>
       ) : (
         <>
-          {/* Settings helper */}
-          <section className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 text-xs text-stone-600 sm:text-sm">
-            <p className="font-medium text-stone-800">Admin settings</p>
-            <p className="mt-1">
-              Use the actions on each row to promote a customer to admin or remove admin
-              access. Admins can access the full dashboard, products, orders, and
-              settings.
+          <AdminCallout variant="muted" title="Admin roles">
+            <p className="text-xs sm:text-sm">
+              Admins can manage products, orders, payments, and contact settings. Only promote people you
+              trust.
             </p>
-          </section>
+          </AdminCallout>
 
           <section className="space-y-3">
-            {/* Mobile cards */}
             <div className="space-y-3 sm:hidden">
               {users.map((user) => {
                 const primaryEmail =
-                  user.emailAddresses.find(
-                    (email) => email.id === user.primaryEmailAddressId,
-                  )?.emailAddress ?? '';
+                  user.emailAddresses.find((email) => email.id === user.primaryEmailAddressId)
+                    ?.emailAddress ?? '';
                 const isAdminUser =
                   (user.publicMetadata as { role?: string } | null)?.role === 'admin';
 
                 return (
                   <div
                     key={user.id}
-                    className="rounded-lg border border-stone-200 bg-white p-4"
+                    className="rounded-2xl border border-stone-200/90 bg-white p-4 shadow-sm ring-1 ring-stone-100/80"
                   >
                     <p className="text-sm font-semibold text-stone-900">
                       {user.firstName || user.lastName
@@ -78,11 +58,9 @@ export default async function AdminUsersPage() {
                         : primaryEmail}
                     </p>
                     {user.username && (
-                      <p className="mt-0.5 text-xs text-stone-500">
-                        @{user.username}
-                      </p>
+                      <p className="mt-0.5 text-xs text-stone-500">@{user.username}</p>
                     )}
-                    <p className="mt-1 text-xs text-stone-500">{primaryEmail}</p>
+                    <p className="mt-1 text-xs text-stone-500 break-all">{primaryEmail}</p>
                     <p className="mt-1 text-xs text-stone-500">
                       Joined{' '}
                       {new Date(user.createdAt).toLocaleDateString('en-KE', {
@@ -91,24 +69,21 @@ export default async function AdminUsersPage() {
                         day: 'numeric',
                       })}
                     </p>
-                    <div className="mt-3 flex items-center justify-between">
+                    <div className="mt-4 flex items-center justify-between gap-2 border-t border-stone-100 pt-3">
                       <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase ${
+                        className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${
                           isAdminUser
-                            ? 'bg-amber-100 text-amber-800'
+                            ? 'bg-amber-100 text-amber-900'
                             : 'bg-stone-100 text-stone-700'
                         }`}
                       >
                         {isAdminUser ? 'Admin' : 'Customer'}
                       </span>
-                      <form
-                        action={isAdminUser ? removeAdmin : makeAdmin}
-                        className="inline"
-                      >
+                      <form action={isAdminUser ? removeAdmin : makeAdmin} className="inline">
                         <input type="hidden" name="id" value={user.id} />
                         <button
                           type="submit"
-                          className="text-xs font-medium text-stone-900 underline-offset-2 hover:underline"
+                          className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-semibold text-stone-800 shadow-sm transition hover:bg-stone-50"
                         >
                           {isAdminUser ? 'Remove admin' : 'Make admin'}
                         </button>
@@ -119,82 +94,76 @@ export default async function AdminUsersPage() {
               })}
             </div>
 
-            {/* Desktop table */}
-            <div className="hidden overflow-hidden rounded-xl border border-stone-200 bg-white sm:block">
+            <div className="hidden overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-sm ring-1 ring-stone-100/80 sm:block">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-stone-200 text-sm">
-                  <thead>
+                  <thead className="bg-stone-50/90">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+                      <th className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500">
                         Name
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+                      <th className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500">
                         Username
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+                      <th className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500">
                         Email
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+                      <th className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500">
                         Role
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-stone-500">
+                      <th className="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500">
                         Joined
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-stone-500">
-                        Settings
+                      <th className="px-4 py-3.5 text-right text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500">
+                        Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-stone-200">
+                  <tbody className="divide-y divide-stone-100">
                     {users.map((user) => {
                       const primaryEmail =
-                        user.emailAddresses.find(
-                          (email) => email.id === user.primaryEmailAddressId,
-                        )?.emailAddress ?? '';
+                        user.emailAddresses.find((email) => email.id === user.primaryEmailAddressId)
+                          ?.emailAddress ?? '';
                       const isAdminUser =
-                        (user.publicMetadata as { role?: string } | null)?.role ===
-                        'admin';
+                        (user.publicMetadata as { role?: string } | null)?.role === 'admin';
                       const fullName =
                         user.firstName || user.lastName
                           ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
                           : '';
 
                       return (
-                        <tr key={user.id}>
-                          <td className="px-4 py-3 text-stone-900">
-                            {fullName || '—'}
-                          </td>
-                          <td className="px-4 py-3 text-stone-700">
+                        <tr key={user.id} className="transition hover:bg-stone-50/80">
+                          <td className="px-4 py-3.5 font-medium text-stone-900">{fullName || '—'}</td>
+                          <td className="px-4 py-3.5 text-stone-600">
                             {user.username ? `@${user.username}` : '—'}
                           </td>
-                          <td className="px-4 py-3 text-stone-700">{primaryEmail}</td>
-                          <td className="px-4 py-3 text-stone-700">
+                          <td className="max-w-[200px] truncate px-4 py-3.5 text-stone-600">
+                            {primaryEmail}
+                          </td>
+                          <td className="px-4 py-3.5">
                             <span
-                              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium uppercase ${
+                              className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
                                 isAdminUser
-                                  ? 'bg-amber-100 text-amber-800'
+                                  ? 'bg-amber-100 text-amber-900'
                                   : 'bg-stone-100 text-stone-700'
                               }`}
                             >
                               {isAdminUser ? 'Admin' : 'Customer'}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-stone-600">
+                          <td className="px-4 py-3.5 text-stone-600">
                             {new Date(user.createdAt).toLocaleDateString('en-KE', {
                               year: 'numeric',
                               month: 'short',
                               day: 'numeric',
                             })}
                           </td>
-                          <td className="px-4 py-3 text-right text-xs">
-                            <form
-                              action={isAdminUser ? removeAdmin : makeAdmin}
-                              className="inline"
-                            >
+                          <td className="px-4 py-3.5 text-right">
+                            <form action={isAdminUser ? removeAdmin : makeAdmin} className="inline">
                               <input type="hidden" name="id" value={user.id} />
                               <button
                                 type="submit"
-                                className="rounded-full border border-stone-200 px-3 py-1 text-xs font-medium text-stone-800 hover:bg-stone-50"
+                                className="rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-800 shadow-sm transition hover:bg-stone-50"
                               >
                                 {isAdminUser ? 'Remove admin' : 'Make admin'}
                               </button>
@@ -213,4 +182,3 @@ export default async function AdminUsersPage() {
     </div>
   );
 }
-
