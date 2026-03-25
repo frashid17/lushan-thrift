@@ -12,7 +12,7 @@ export function ApprovePaymentButton({ orderId }: { orderId: string }) {
   async function onApprove() {
     setError(null);
     const ok = window.confirm(
-      'Approve this payment? The customer will get a confirmation email if we have their address.'
+      'Approve this payment? The customer will get a confirmation email at the address they entered at checkout (or their account email for older orders without one).'
     );
     if (!ok) return;
 
