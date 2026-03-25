@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
+import { productPrimaryImage } from '@/lib/product-images';
 import type { Product } from '@/types/database';
 import { useWishlistStore } from '@/store/wishlist-store';
 import { useCartStore } from '@/store/cart-store';
@@ -15,6 +16,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const thumb = productPrimaryImage(product);
   const { addItem: addWishlist, removeItem: removeWishlist, hasItem } = useWishlistStore();
   const { addItem: addCart } = useCartStore();
   const { isSignedIn } = useUser();
@@ -107,24 +109,24 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={`/shop/${product.id}`} className="group block">
-      <article className="rounded-lg border border-stone-200 bg-white overflow-hidden shadow-sm transition hover:shadow-md">
+      <article className="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-sm ring-1 ring-stone-100/80 transition hover:-translate-y-0.5 hover:shadow-md">
         <div className="relative aspect-[3/4] bg-stone-100">
           <Image
-            src={product.image_url}
+            src={thumb}
             alt={product.name}
             fill
-            className="object-cover"
+            className="object-cover transition duration-300 group-hover:scale-[1.02]"
             sizes="(max-width: 640px) 50vw, 25vw"
           />
           {!product.availability && (
-            <span className="absolute inset-0 flex items-center justify-center bg-stone-900/60 text-sm font-medium text-white">
+            <span className="absolute inset-0 flex items-center justify-center bg-stone-900/65 text-sm font-semibold text-white backdrop-blur-[2px]">
               Out of stock
             </span>
           )}
           <button
             type="button"
             onClick={handleWishlist}
-            className="absolute top-2 right-2 rounded-full bg-white/90 p-2 shadow hover:bg-white"
+            className="absolute right-2 top-2 rounded-full bg-white/95 p-2 shadow-md ring-1 ring-stone-200/80 transition hover:scale-105 hover:bg-white"
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
           >
             <Heart
@@ -132,27 +134,27 @@ export function ProductCard({ product }: ProductCardProps) {
             />
           </button>
         </div>
-        <div className="p-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">
+        <div className="p-3 sm:p-3.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-stone-500">
             {product.category} · {product.size}
           </p>
-          <h3 className="mt-0.5 font-semibold text-stone-900 line-clamp-1">{product.name}</h3>
-          <p className="mt-1 text-lg font-semibold text-stone-900">
+          <h3 className="mt-1 font-semibold text-stone-900 line-clamp-2 leading-snug">{product.name}</h3>
+          <p className="mt-2 font-mono text-base font-bold tabular-nums text-stone-900 sm:text-lg">
             KES {product.price.toLocaleString()}
           </p>
           {product.availability && (
-            <div className="mt-2 space-y-2">
+            <div className="mt-3 space-y-2">
               <button
                 type="button"
                 onClick={handleBuyNow}
-                className="w-full rounded-md bg-stone-900 py-2 text-sm font-semibold text-white hover:bg-stone-800"
+                className="w-full rounded-full bg-stone-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-800 active:scale-[0.99]"
               >
                 Buy now
               </button>
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className="w-full rounded-md border border-stone-300 py-2 text-sm font-medium text-stone-800 hover:bg-stone-100"
+                className="w-full rounded-full border-2 border-stone-200 bg-white py-2.5 text-sm font-semibold text-stone-800 transition hover:border-stone-300 hover:bg-stone-50"
               >
                 Add to cart
               </button>
