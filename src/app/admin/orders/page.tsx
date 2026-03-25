@@ -1,7 +1,10 @@
 import { checkRole } from '@/lib/roles';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
-import { AdminOrderCard, type AdminOrderCardData } from './AdminOrderCard';
+import { type AdminOrderCardData } from './AdminOrderCard';
+import { AdminOrdersManager } from './AdminOrdersManager';
+import { AdminCallout, AdminEmptyState, AdminHero } from '../AdminChrome';
+import { ClipboardList } from 'lucide-react';
 
 type AdminOrder = {
   id: string;
@@ -28,40 +31,56 @@ export default async function AdminOrdersPage() {
   const admin = createAdminClient();
   const { data: orders, error } = await admin
     .from('orders')
-    .select('id, created_at, total, payment_status, customer_name, customer_phone, customer_email, mpesa_message, mpesa_sender_name, users(email)')
+    .select(
+      'id, created_at, total, payment_status, customer_name, customer_phone, customer_email, mpesa_message, mpesa_sender_name, users(email)'
+    )
     .order('created_at', { ascending: false });
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-        Could not load orders: {error.message}
+      <div className="space-y-6">
+        <AdminHero eyebrow="Sales" title="Orders" description="Review and approve M-Pesa payments." />
+        <AdminCallout variant="danger" title="Could not load orders">
+          {error.message}
+        </AdminCallout>
       </div>
     );
   }
 
   const list = (orders as unknown as AdminOrder[] | null) ?? [];
+  const pendingVerify = list.filter((o) => o.payment_status === 'submitted').length;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-stone-900 sm:text-2xl">Orders</h1>
-        <p className="mt-1 text-sm text-stone-600">
-          New orders and M-Pesa submissions can email you when{' '}
-          <span className="font-medium text-stone-800">SMTP</span> and{' '}
-          <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">ADMIN_ORDERS_EMAIL</code> are set in
-          your environment. Tap <strong>Approve payment</strong> after you verify M-Pesa in your phone or
-          bank app — no swiping required.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <AdminHero
+        eyebrow="Sales"
+        title="Orders"
+        description={
+          <>
+            New orders and M-Pesa submissions can email you when{' '}
+            <span className="font-medium text-stone-800">SMTP</span> and{' '}
+            <code className="rounded-md bg-white/80 px-1.5 py-0.5 text-xs ring-1 ring-stone-200/80">
+              ADMIN_ORDERS_EMAIL
+            </code>{' '}
+            are set. Use <strong>Approve payment</strong> after you verify M-Pesa — no swiping.
+            {pendingVerify > 0 && (
+              <span className="mt-2 block text-sm font-medium text-sky-800">
+                {pendingVerify} order{pendingVerify === 1 ? '' : 's'} awaiting verification
+              </span>
+            )}
+          </>
+        }
+      />
 
       {list.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-stone-300 bg-white/60 p-8 text-center text-sm text-stone-500">
-          No orders yet.
-        </div>
+        <AdminEmptyState
+          title="No orders yet"
+          hint="When customers check out, their orders and M-Pesa details will appear here."
+        />
       ) : (
-        <ul className="grid list-none gap-4 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
-          {list.map((o) => {
-            const card: AdminOrderCardData = {
+        <AdminOrdersManager
+          orders={list.map(
+            (o): AdminOrderCardData => ({
               id: o.id,
               created_at: o.created_at,
               total: o.total,
@@ -72,15 +91,18 @@ export default async function AdminOrdersPage() {
               mpesa_message: o.mpesa_message,
               mpesa_sender_name: o.mpesa_sender_name,
               accountEmail: accountEmail(o.users),
-            };
-            return (
-              <li key={o.id}>
-                <AdminOrderCard o={card} />
-              </li>
-            );
-          })}
-        </ul>
+            })
+          )}
+        />
       )}
+
+      <AdminCallout variant="muted" title="Tip">
+        <p className="flex items-start gap-2 text-xs sm:text-sm">
+          <ClipboardList className="mt-0.5 h-4 w-4 shrink-0 text-stone-400" aria-hidden />
+          Admin emails include a deep link to this page with <code className="rounded bg-white px-1">#order-…</code>{' '}
+          so you can jump straight to the right card.
+        </p>
+      </AdminCallout>
     </div>
   );
 }
