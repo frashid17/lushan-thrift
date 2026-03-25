@@ -58,20 +58,25 @@ export function ContactSettingsForm() {
   }
 
   if (loading) {
-    return <p className="text-sm text-stone-500">Loading…</p>;
+    return (
+      <div className="flex h-24 items-center justify-center rounded-2xl border border-dashed border-stone-200 bg-stone-50/60">
+        <p className="text-sm text-stone-500">Loading contact settings…</p>
+      </div>
+    );
   }
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full max-w-xl space-y-5 rounded-xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5"
+      className="w-full max-w-xl space-y-6 rounded-2xl border border-stone-200/90 bg-white p-5 shadow-sm ring-1 ring-stone-100/80 sm:p-6"
     >
+      <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-stone-400">Floating buttons</h2>
       <div>
-        <label className="block text-sm font-medium text-stone-800">Phone (call)</label>
+        <label className="block text-sm font-semibold text-stone-800">Phone (call)</label>
         <input
           value={phoneTel}
           onChange={(e) => setPhoneTel(e.target.value)}
-          className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900"
+          className="mt-2 w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm text-stone-900"
           placeholder="+254708786001 or 0708786001"
           autoComplete="tel"
         />
@@ -80,11 +85,11 @@ export function ContactSettingsForm() {
         </p>
       </div>
       <div>
-        <label className="block text-sm font-medium text-stone-800">WhatsApp number</label>
+        <label className="block text-sm font-semibold text-stone-800">WhatsApp number</label>
         <input
           value={whatsapp}
           onChange={(e) => setWhatsapp(e.target.value)}
-          className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900"
+          className="mt-2 w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm text-stone-900"
           placeholder="254708786001 (country code, no + or spaces)"
           inputMode="numeric"
         />
@@ -93,8 +98,9 @@ export function ContactSettingsForm() {
         </p>
       </div>
 
-      <div className="border-t border-stone-100 pt-5">
-        <h2 className="text-sm font-semibold text-stone-900">Social (footer)</h2>
+      <div className="border-t border-stone-100 pt-6">
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-stone-400">Footer social</h2>
+        <p className="mt-1 text-sm font-semibold text-stone-900">Profile URLs</p>
         <p className="mt-1 text-xs text-stone-500">
           Full profile URLs. Leave blank to hide that link.{' '}
           <code className="rounded bg-stone-100 px-1">https://</code> is added if you omit it. Only{' '}
@@ -102,34 +108,34 @@ export function ContactSettingsForm() {
           <code className="rounded bg-stone-100 px-1">https</code> links are saved.
         </p>
         <div className="mt-4 space-y-4">
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-stone-800">Instagram</label>
+          <div>
+            <label className="block text-sm font-semibold text-stone-800">Instagram</label>
             <input
               value={instagramUrl}
               onChange={(e) => setInstagramUrl(e.target.value)}
-              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900"
+              className="mt-2 w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm text-stone-900"
               placeholder="https://instagram.com/yourshop"
               type="url"
               autoComplete="off"
             />
           </div>
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-stone-800">Facebook</label>
+          <div>
+            <label className="block text-sm font-semibold text-stone-800">Facebook</label>
             <input
               value={facebookUrl}
               onChange={(e) => setFacebookUrl(e.target.value)}
-              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900"
+              className="mt-2 w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm text-stone-900"
               placeholder="https://facebook.com/yourpage"
               type="url"
               autoComplete="off"
             />
           </div>
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-stone-800">TikTok</label>
+          <div>
+            <label className="block text-sm font-semibold text-stone-800">TikTok</label>
             <input
               value={tiktokUrl}
               onChange={(e) => setTiktokUrl(e.target.value)}
-              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm text-stone-900"
+              className="mt-2 w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm text-stone-900"
               placeholder="https://tiktok.com/@yourshop"
               type="url"
               autoComplete="off"
@@ -139,15 +145,19 @@ export function ContactSettingsForm() {
       </div>
 
       {error && (
-        <p className="text-sm text-red-700" role="alert">
+        <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
           {error}
         </p>
       )}
-      {message && <p className="text-sm text-green-800">{message}</p>}
+      {message && (
+        <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          {message}
+        </p>
+      )}
       <button
         type="submit"
         disabled={saving}
-        className="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white hover:bg-stone-800 disabled:opacity-60"
+        className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-stone-900 px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-stone-800 disabled:opacity-60"
       >
         {saving ? 'Saving…' : 'Save contact & social'}
       </button>
