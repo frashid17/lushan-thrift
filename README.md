@@ -51,8 +51,11 @@ In the Supabase SQL Editor, run the migrations in order:
 
 1. **Initial schema:** paste and run the contents of `supabase/migrations/001_initial_schema.sql`.
 2. **Orders (checkout):** paste and run the contents of `supabase/migrations/002_orders.sql`.
+3. **M-Pesa manual checkout:** paste and run `supabase/migrations/003_checkout_mpesa.sql` (payment settings table, order location & payment fields).
 
 Optional: run `supabase/seed.sql` to insert sample products (replace image URLs with your Cloudinary URLs).
+
+**Email notifications:** Set SMTP variables (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` app password, `SMTP_SECURE` if needed), `EMAIL_FROM`, and `ADMIN_ORDERS_EMAIL` in `.env.local` so the shop emails you on new orders and M-Pesa submissions, and customers when payment is approved. Set **`NEXT_PUBLIC_APP_URL`** to your live site URL (no trailing slash) so admin emails include an **Open orders dashboard** button.
 
 ### 4. Clerk session claims (admin role)
 
