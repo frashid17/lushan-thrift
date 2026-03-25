@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
 
   if (!res.ok) {
     const err = await res.text();
-    return NextResponse.json({ error: err || 'Upload failed' }, { status: res.status });
+    console.error('[upload] Cloudinary error', res.status, err.slice(0, 500));
+    return NextResponse.json({ error: 'Upload failed' }, { status: 502 });
   }
   const data = (await res.json()) as { secure_url: string };
   return NextResponse.json({ url: data.secure_url });
