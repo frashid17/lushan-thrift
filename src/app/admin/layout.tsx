@@ -1,6 +1,7 @@
 import { checkRole } from '@/lib/roles';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { AdminNav } from './AdminNav';
 
 export default async function AdminLayout({
@@ -16,8 +17,15 @@ export default async function AdminLayout({
       <header className="border-b border-stone-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-3 py-3 sm:h-16 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-0">
           <div className="flex items-center gap-2">
-            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stone-900 text-xs font-semibold text-white shadow-sm sm:h-8 sm:w-8">
-              LT
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-stone-200/80 sm:h-8 sm:w-8">
+              <Image
+                src="/icons/icon.svg"
+                alt=""
+                width={32}
+                height={32}
+                className="h-7 w-7 object-contain sm:h-6 sm:w-6"
+                unoptimized
+              />
             </span>
             <div className="min-w-0 leading-tight">
               <p className="text-base font-semibold text-stone-900 sm:text-lg">Lushan Admin</p>
