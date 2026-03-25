@@ -13,7 +13,10 @@ const AMBER_TEXT = '#92400e';
 const SKY_BG = '#f0f9ff';
 const SKY_BORDER = '#bae6fd';
 
-/** Public site URL for admin CTA links (no trailing slash) */
+/** Production shop URL when env is unset (emails still get working links). Override with NEXT_PUBLIC_APP_URL. */
+const DEFAULT_PUBLIC_SITE_URL = 'https://lushan-thrift.vercel.app';
+
+/** Public site URL for links in emails (no trailing slash) */
 function getPublicSiteUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (explicit) return explicit.replace(/\/$/, '');
@@ -22,32 +25,40 @@ function getPublicSiteUrl(): string {
     const host = vercel.replace(/^https?:\/\//, '');
     return `https://${host}`;
   }
-  return '';
+  return DEFAULT_PUBLIC_SITE_URL;
 }
 
-function adminOrdersUrl(): string {
+/** Admin orders list; optional orderId scrolls to that card (#order-{uuid}) */
+function adminOrdersUrl(orderId?: string): string {
   const base = getPublicSiteUrl();
-  return base ? `${base}/admin/orders` : '';
+  const path = `${base}/admin/orders`;
+  if (!orderId) return path;
+  return `${path}#order-${orderId}`;
 }
 
 /** Bulletproof CTA + fallback link for admin emails */
-function adminDashboardCta(): string {
-  const url = adminOrdersUrl();
-  if (!url) {
-    return `<p style="margin:28px 0 0 0;font-size:14px;color:${STONE_600};font-family:${FONT};">Open your store’s <strong style="color:${STONE_900};">Admin → Orders</strong> page in the browser where you manage Lushan Thrift.</p>`;
-  }
+function adminDashboardCta(opts: { orderId: string; mode: 'new_order' | 'verify_payment' }): string {
+  const url = adminOrdersUrl(opts.orderId);
   const safeUrl = escapeHtml(url);
+  const buttonLabel =
+    opts.mode === 'verify_payment' ? 'Verify this order in admin' : 'Open this order in admin';
+  const hint =
+    opts.mode === 'verify_payment'
+      ? 'Opens your orders page and jumps to this order so you can approve payment after checking M-Pesa.'
+      : 'Opens your orders page and highlights this order.';
+
   return `<table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:28px;">
 <tr>
 <td align="left">
 <table cellspacing="0" cellpadding="0" border="0" role="presentation">
 <tr>
 <td style="border-radius:12px;background-color:${STONE_900};">
-<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:15px 28px;font-family:${FONT};font-size:15px;font-weight:600;color:${WARM_WHITE};text-decoration:none;border-radius:12px;">Open orders dashboard</a>
+<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:15px 28px;font-family:${FONT};font-size:15px;font-weight:600;color:${WARM_WHITE};text-decoration:none;border-radius:12px;">${escapeHtml(buttonLabel)}</a>
 </td>
 </tr>
 </table>
-<p style="margin:12px 0 0 0;font-size:12px;line-height:1.5;color:${STONE_500};font-family:${FONT};">Button not working? Paste this into your browser:<br><a href="${safeUrl}" style="color:${STONE_900};word-break:break-all;">${safeUrl}</a></p>
+<p style="margin:10px 0 0 0;font-size:13px;line-height:1.5;color:${STONE_600};font-family:${FONT};">${escapeHtml(hint)}</p>
+<p style="margin:12px 0 0 0;font-size:12px;line-height:1.5;color:${STONE_500};font-family:${FONT};">Or paste this link:<br><a href="${safeUrl}" style="color:${STONE_900};word-break:break-all;">${safeUrl}</a></p>
 </td>
 </tr>
 </table>`;
@@ -246,13 +257,12 @@ ${rowLabelValue('Customer', customerLine)}
 ${rowLabelValue('Delivery', `${escapeHtml(opts.deliveryType)} — ${escapeHtml(opts.deliveryLabel)}`)}
 ${itemsTable}
 ${callout(`<strong style="font-weight:700;">Payment pending.</strong> The customer pays via M-Pesa and submits their confirmation from their order page. When they do, you’ll get another email — then verify in M-Pesa and approve in the dashboard.`, 'amber')}
-${adminDashboardCta()}
+${adminDashboardCta({ orderId: opts.orderId, mode: 'new_order' })}
 `;
 
   const linesText = opts.lines
     .map((l) => `  - ${l.name} x${l.qty}  KES ${l.lineTotal.toLocaleString()}`)
     .join('\n');
-  const dash = adminOrdersUrl();
   const text = [
     `LUSHAN THRIFT — NEW ORDER`,
     ``,
@@ -268,7 +278,7 @@ ${adminDashboardCta()}
     `TOTAL: KES ${opts.totalKes.toLocaleString()}`,
     ``,
     `Payment is pending until the customer submits M-Pesa details.`,
-    dash ? `Open orders: ${dash}` : `Open Admin → Orders in your browser.`,
+    `Open this order in admin: ${adminOrdersUrl(opts.orderId)}`,
     ``,
     `— Lushan Thrift · Mombasa`,
   ].join('\n');
@@ -308,10 +318,9 @@ ${rowLabelValue('Name on M-Pesa', `<strong style="color:${STONE_900};">${escapeH
 </tr>
 </table>
 ${callout(`<strong style="font-weight:700;">Your move:</strong> Check this message against your M-Pesa / till statement. If it matches, tap <strong>Approve payment</strong> for this order in the dashboard. The customer is notified automatically.`, 'sky')}
-${adminDashboardCta()}
+${adminDashboardCta({ orderId: opts.orderId, mode: 'verify_payment' })}
 `;
 
-  const dash = adminOrdersUrl();
   const text = [
     `LUSHAN THRIFT — M-PESA DETAILS SUBMITTED`,
     ``,
@@ -325,7 +334,7 @@ ${adminDashboardCta()}
     opts.mpesaMessage,
     ``,
     `Verify in your M-Pesa app, then approve this order in Admin.`,
-    dash ? `Open orders: ${dash}` : `Open Admin → Orders in your browser.`,
+    `Verify this order (opens admin): ${adminOrdersUrl(opts.orderId)}`,
     ``,
     `— Lushan Thrift · Mombasa`,
   ].join('\n');
@@ -343,23 +352,40 @@ ${adminDashboardCta()}
   });
 }
 
-export async function sendCustomerPaymentApprovedEmail(opts: { to: string; orderId: string }) {
+export async function sendCustomerPaymentApprovedEmail(opts: {
+  to: string;
+  orderId: string;
+  /** Where we got the address (checkout field vs legacy account fallback). */
+  emailSource?: 'checkout' | 'account';
+}) {
   const shortId = opts.orderId.slice(0, 8).toUpperCase();
   const shopUrl = getPublicSiteUrl();
   const ordersLink = shopUrl ? `${shopUrl}/orders` : '';
+  const emailSource = opts.emailSource ?? 'checkout';
+  const sourceNote =
+    emailSource === 'account'
+      ? `We’re emailing the address on your Lushan Thrift account because this order had no checkout email on file.`
+      : `This message goes to the email you entered when you placed your order.`;
 
   const bodyHtml = `
 <p style="margin:0 0 16px 0;font-size:16px;line-height:1.6;color:${STONE_600};font-family:${FONT};">Thank you for shopping with us. Your payment is confirmed and we’re getting your order ready.</p>
+<p style="margin:0 0 16px 0;font-size:13px;line-height:1.5;color:${STONE_500};font-family:${FONT};">${escapeHtml(sourceNote)}</p>
 ${rowLabelValue('Order', `<span style="font-size:18px;font-weight:700;color:${STONE_900};font-family:${FONT};">#${escapeHtml(shortId)}</span>`)}
 ${callout(`We’ll prepare your items and contact you if we need anything else. If you chose delivery, we’ll coordinate drop-off; for pickup in Mombasa, we’ll share pickup details soon.`, 'emerald')}
 ${ordersLink ? `<table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:24px;"><tr><td><a href="${escapeHtml(ordersLink)}" style="font-family:${FONT};font-size:14px;font-weight:600;color:${STONE_900};text-decoration:underline;">View your orders</a></td></tr></table>` : ''}
 <p style="margin:24px 0 0 0;font-size:14px;color:${STONE_500};font-family:${FONT};">— Lushan Thrift · Mombasa</p>
 `;
 
+  const textNote =
+    emailSource === 'account'
+      ? `Email: address on your account (order had no checkout email).`
+      : `Email: the address you entered at checkout.`;
+
   const text = [
     `LUSHAN THRIFT`,
     ``,
     `Your payment for order #${shortId} is confirmed.`,
+    textNote,
     ``,
     `We’re preparing your order and will be in touch about delivery or pickup.`,
     ordersLink ? `\nView orders: ${ordersLink}` : '',
