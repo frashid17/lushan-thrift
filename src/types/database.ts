@@ -75,6 +75,16 @@ export interface PaymentSettingsRow {
   updated_at: string;
 }
 
+export interface ContactSettingsRow {
+  id: number;
+  phone_tel: string;
+  whatsapp_number: string;
+  instagram_url: string;
+  facebook_url: string;
+  tiktok_url: string;
+  updated_at: string;
+}
+
 export interface OrderItem {
   id: string;
   order_id: string;
