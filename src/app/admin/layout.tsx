@@ -31,7 +31,7 @@ export default async function AdminLayout({
             Back to shop
           </Link>
         </div>
-        <div className="mx-auto max-w-6xl px-1 sm:px-6">
+        <div className="mx-auto max-w-6xl px-3 sm:px-6">
           <AdminNav />
         </div>
       </header>
