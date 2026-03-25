@@ -99,8 +99,20 @@ export default async function OrdersPage() {
                   <p className="font-semibold text-stone-900">
                     KES {total.toLocaleString()}
                   </p>
-                  <p className="mt-1 text-xs text-green-700 font-medium">
-                    Paid
+                  <p
+                    className={`mt-1 text-xs font-medium ${
+                      order.payment_status === 'approved'
+                        ? 'text-green-700'
+                        : order.payment_status === 'submitted'
+                          ? 'text-sky-800'
+                          : 'text-amber-800'
+                    }`}
+                  >
+                    {order.payment_status === 'approved'
+                      ? 'Payment approved'
+                      : order.payment_status === 'submitted'
+                        ? 'Awaiting verification'
+                        : 'Payment pending'}
                   </p>
                 </div>
               </div>
