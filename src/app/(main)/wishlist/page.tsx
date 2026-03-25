@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useWishlistStore } from '@/store/wishlist-store';
 import { ProductCard } from '@/components/product/ProductCard';
 import { useUser } from '@clerk/nextjs';
+import { Heart, Sparkles } from 'lucide-react';
+import { StorefrontHero, StorefrontPage, StorefrontPanel } from '@/components/layout/StorefrontChrome';
 
 export default function WishlistPage() {
   const { items, setItems } = useWishlistStore();
@@ -24,105 +26,106 @@ export default function WishlistPage() {
 
   if (!isSignedIn) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-16 text-center sm:px-6">
-        <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Wishlist</h1>
-        <p className="mt-3 text-base text-stone-600">
-          Sign in to start saving pieces you love for later.
-        </p>
-        <Link
-          href="/sign-in"
-          className="mt-6 inline-flex items-center justify-center rounded-full bg-stone-900 px-8 py-3 text-sm font-semibold text-white hover:bg-stone-800"
-        >
-          Sign in
-        </Link>
-      </div>
+      <StorefrontPage>
+        <StorefrontHero
+          eyebrow="Saved"
+          title="Wishlist"
+          description="Sign in to save thrift pieces you love and come back to them anytime."
+        />
+        <StorefrontPanel className="text-center">
+          <Heart className="mx-auto h-12 w-12 text-rose-200" strokeWidth={1.25} aria-hidden />
+          <p className="mt-4 text-sm font-semibold text-stone-800">Sign in to use your wishlist</p>
+          <Link
+            href="/sign-in"
+            className="mt-8 inline-flex min-h-[48px] items-center justify-center rounded-full bg-stone-900 px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-stone-800"
+          >
+            Sign in
+          </Link>
+        </StorefrontPanel>
+      </StorefrontPage>
     );
   }
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-16 text-center sm:px-6">
-        <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Wishlist</h1>
-        <p className="mt-4 text-base text-stone-500">Loading your saved items...</p>
-      </div>
+      <StorefrontPage>
+        <StorefrontHero
+          eyebrow="Saved"
+          title="Wishlist"
+          description="Loading your saved pieces…"
+        />
+        <div className="flex justify-center py-16">
+          <div className="h-10 w-10 animate-pulse rounded-full bg-stone-200" aria-hidden />
+        </div>
+      </StorefrontPage>
     );
   }
 
   if (!items.length) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-16 text-center sm:px-6">
-        <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">Wishlist</h1>
-        <p className="mt-4 text-base text-stone-600">
-          Your wishlist is empty for now. Save items you like and compare fits later.
-        </p>
-        <Link
-          href="/shop"
-          className="mt-6 inline-flex items-center justify-center rounded-full bg-stone-900 px-8 py-3 text-sm font-semibold text-white hover:bg-stone-800"
-        >
-          Browse the shop
-        </Link>
-      </div>
+      <StorefrontPage>
+        <StorefrontHero
+          eyebrow="Saved"
+          title="Wishlist"
+          description="Heart items on the shop to build a list of pieces you’re considering."
+        />
+        <StorefrontPanel className="text-center">
+          <Heart className="mx-auto h-12 w-12 text-stone-200" strokeWidth={1.25} aria-hidden />
+          <p className="mt-4 text-sm font-semibold text-stone-800">Nothing saved yet</p>
+          <p className="mt-1 text-sm text-stone-500">
+            Tap the heart on any product to save it here before it’s gone.
+          </p>
+          <Link
+            href="/shop"
+            className="mt-8 inline-flex min-h-[48px] items-center justify-center rounded-full bg-stone-900 px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-stone-800"
+          >
+            Browse the shop
+          </Link>
+        </StorefrontPanel>
+      </StorefrontPage>
     );
   }
 
   const count = items.length;
-  const estimatedTotal = items.reduce(
-    (sum, item) => sum + (item.product?.price ?? 0),
-    0,
-  );
+  const estimatedTotal = items.reduce((sum, item) => sum + (item.product?.price ?? 0), 0);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      {/* Header / summary */}
-      <section className="mb-6 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-4 shadow-sm sm:px-6 sm:py-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">
-              Wishlist
-            </h1>
-            <p className="mt-2 text-sm text-stone-600 sm:text-base">
-              All the pieces you&apos;re eyeing before they disappear from the racks.
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs sm:text-sm">
-              <span className="inline-flex items-center rounded-full bg-white px-3 py-1 font-medium text-stone-800 shadow-sm">
-                {count} saved {count === 1 ? 'item' : 'items'}
+    <StorefrontPage>
+      <StorefrontHero
+        eyebrow="Saved"
+        title="Wishlist"
+        description="Pieces you’re eyeing — move them to cart when you’re ready to check out."
+        right={
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-stone-800 shadow-sm ring-1 ring-stone-200/80">
+              {count} saved
+            </span>
+            {estimatedTotal > 0 && (
+              <span className="inline-flex items-center rounded-full bg-stone-900 px-3 py-1.5 text-xs font-bold text-white shadow-md">
+                Est. KES {estimatedTotal.toLocaleString()}
               </span>
-              {estimatedTotal > 0 && (
-                <span className="inline-flex items-center rounded-full bg-stone-900 px-3 py-1 font-medium text-white shadow-sm">
-                  Est. value KES {estimatedTotal.toLocaleString()}
-                </span>
-              )}
-            </div>
+            )}
           </div>
-          <div className="flex flex-col items-start gap-2 text-xs text-stone-600 sm:text-sm sm:items-end">
-            <p>
-              Tip: move items from your wishlist to cart when you&apos;re ready to
-              check out.
-            </p>
-            <Link
-              href="/shop"
-              className="inline-flex items-center justify-center rounded-full bg-stone-900 px-4 py-2 text-xs font-semibold text-white hover:bg-stone-800"
-            >
-              Continue shopping
-            </Link>
-          </div>
-        </div>
-      </section>
+        }
+      />
 
-      {/* Grid */}
-      <section>
-        <div className="mb-3 flex items-center justify-between text-xs text-stone-600 sm:text-sm">
-          <p className="font-medium uppercase tracking-wide text-stone-700">
-            Saved items
-          </p>
-          <p>{count} showing</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-          {items.map((item) =>
-            item.product ? <ProductCard key={item.id} product={item.product} /> : null,
-          )}
-        </div>
-      </section>
-    </div>
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <p className="inline-flex items-center gap-1.5 text-sm font-bold text-stone-900">
+          <Sparkles className="h-4 w-4 text-amber-600" aria-hidden />
+          Saved items
+        </p>
+        <Link
+          href="/shop"
+          className="text-xs font-semibold text-stone-600 hover:text-stone-900"
+        >
+          Keep shopping →
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+        {items.map((item) =>
+          item.product ? <ProductCard key={item.id} product={item.product} /> : null,
+        )}
+      </div>
+    </StorefrontPage>
   );
 }
