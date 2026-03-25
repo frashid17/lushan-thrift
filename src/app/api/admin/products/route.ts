@@ -1,4 +1,5 @@
 import { checkRole } from '@/lib/roles';
+import { normalizeGalleryUrls } from '@/lib/product-images';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextRequest, NextResponse } from 'next/server';
 import type { ProductInsert } from '@/types/database';
@@ -28,14 +29,22 @@ export async function POST(request: NextRequest) {
     if (!isAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    const body = (await request.json()) as ProductInsert;
-    const { name, description, price, image_url, category, size, availability } = body;
-    if (!name || price == null || !image_url || !category || !size) {
+    const body = (await request.json()) as ProductInsert & { gallery_urls?: unknown };
+    const { name, description, price, category, size, availability } = body;
+    const gallery = normalizeGalleryUrls(body.gallery_urls);
+    const legacyPrimary =
+      typeof body.image_url === 'string' && body.image_url.trim() ? body.image_url.trim() : '';
+    const urls = gallery ?? (legacyPrimary ? [legacyPrimary] : null);
+    if (!name || price == null || !category || !size || !urls?.length) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, price, image_url, category, size' },
+        {
+          error:
+            'Missing required fields: name, price, category, size, and at least one product image (gallery_urls or image_url)',
+        },
         { status: 400 }
       );
     }
+    const primary = urls[0];
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('products')
@@ -43,7 +52,8 @@ export async function POST(request: NextRequest) {
         name,
         description: description ?? '',
         price: Number(price),
-        image_url,
+        image_url: primary,
+        gallery_urls: urls,
         category,
         size,
         availability: availability ?? true,
