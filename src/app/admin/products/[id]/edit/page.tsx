@@ -1,6 +1,9 @@
+import Link from 'next/link';
+import { ChevronLeft } from 'lucide-react';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { notFound } from 'next/navigation';
 import { EditProductForm } from '../../EditProductForm';
+import { AdminHero } from '../../../AdminChrome';
 
 export default async function EditProductPage({
   params,
@@ -9,15 +12,28 @@ export default async function EditProductPage({
 }) {
   const { id } = await params;
   const supabase = createAdminClient();
-  const { data: product, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const { data: product, error } = await supabase.from('products').select('*').eq('id', id).single();
   if (error || !product) notFound();
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-stone-900 mb-6">Edit product</h1>
+    <div className="space-y-6">
+      <Link
+        href="/admin/products"
+        className="group inline-flex items-center gap-0.5 text-sm font-semibold text-stone-600 transition hover:text-stone-900"
+      >
+        <ChevronLeft className="h-4 w-4 transition group-hover:-translate-x-0.5" aria-hidden />
+        Back to products
+      </Link>
+      <AdminHero
+        eyebrow="Catalog"
+        title="Edit product"
+        description={
+          <>
+            Update <span className="font-medium text-stone-800">{product.name}</span>. Shoppers see changes
+            immediately.
+          </>
+        }
+      />
       <EditProductForm product={product} />
     </div>
   );
