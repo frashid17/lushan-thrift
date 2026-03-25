@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { productPrimaryImage } from '@/lib/product-images';
 import type { Product } from '@/types/database';
 import Image from 'next/image';
 
@@ -79,7 +80,7 @@ export function SearchAutocomplete({
       : 'Search all products...';
 
   return (
-    <div className="relative w-full max-w-md">
+    <div className={variant === 'home' ? 'relative w-full max-w-full sm:max-w-xl' : 'relative w-full max-w-md'}>
       <form
         onSubmit={handleSubmit}
         className="flex items-center gap-2 rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm shadow-sm"
@@ -113,7 +114,7 @@ export function SearchAutocomplete({
                 >
                   <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-stone-100">
                     <Image
-                      src={product.image_url}
+                      src={productPrimaryImage(product)}
                       alt={product.name}
                       fill
                       className="object-cover"
