@@ -29,9 +29,21 @@ function getPublicSiteUrl(): string {
   return DEFAULT_PUBLIC_SITE_URL;
 }
 
+/**
+ * Base URL for admin email CTAs (“Open this order in admin”, “Verify this order in admin”).
+ * Does not use VERCEL_URL so preview/branch deploys don’t send admins to temporary hosts.
+ * Order: ADMIN_EMAIL_BASE_URL → NEXT_PUBLIC_APP_URL → production default.
+ */
+function getAdminEmailBaseUrl(): string {
+  const fromEnv =
+    process.env.ADMIN_EMAIL_BASE_URL?.trim() || process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (fromEnv) return fromEnv.replace(/\/$/, '');
+  return DEFAULT_PUBLIC_SITE_URL;
+}
+
 /** Admin orders list; optional orderId scrolls to that card (#order-{uuid}) */
 function adminOrdersUrl(orderId?: string): string {
-  const base = getPublicSiteUrl();
+  const base = getAdminEmailBaseUrl();
   const path = `${base}/admin/orders`;
   if (!orderId) return path;
   return `${path}#order-${orderId}`;
@@ -42,9 +54,14 @@ function emailLogoUrl(): string {
   return `${getPublicSiteUrl()}/icons/icon.svg`;
 }
 
+/** Logo URL aligned with admin CTA host so images load when links point at production. */
+function emailAdminLogoUrl(): string {
+  return `${getAdminEmailBaseUrl()}/icons/icon.svg`;
+}
+
 /** Header brand row: logo image + name (admin & customer emails). */
-function emailBrandHeaderHtml(): string {
-  const src = escapeHtml(emailLogoUrl());
+function emailBrandHeaderHtml(opts?: { adminLinks?: boolean }): string {
+  const src = escapeHtml(opts?.adminLinks ? emailAdminLogoUrl() : emailLogoUrl());
   const img = `<img src="${src}" alt="Lushan Thrift" width="40" height="40" style="display:block;width:40px;height:40px;border-radius:10px;object-fit:contain;" />`;
   return `<table cellspacing="0" cellpadding="0" border="0" role="presentation">
 <tr>
@@ -62,8 +79,8 @@ function adminDashboardCta(opts: { orderId: string; mode: 'new_order' | 'verify_
     opts.mode === 'verify_payment' ? 'Verify this order in admin' : 'Open this order in admin';
   const hint =
     opts.mode === 'verify_payment'
-      ? 'Opens your orders page and jumps to this order so you can approve payment after checking M-Pesa.'
-      : 'Opens your orders page and highlights this order.';
+      ? 'Opens your admin orders list and scrolls to this order so you can tap Approve payment after checking M-Pesa.'
+      : 'Opens your admin orders list and scrolls to this order.';
 
   return `<table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:28px;">
 <tr>
@@ -136,6 +153,7 @@ function emailDocument(opts: {
   audience?: 'admin' | 'customer';
 }): string {
   const audience = opts.audience ?? 'admin';
+  const adminEmailHeader = audience === 'admin';
   const footerNote =
     audience === 'customer'
       ? `You’re receiving this because you placed an order at Lushan Thrift.`
@@ -168,7 +186,7 @@ function emailDocument(opts: {
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
 <tr>
 <td valign="middle">
-${emailBrandHeaderHtml()}
+${emailBrandHeaderHtml(adminEmailHeader ? { adminLinks: true } : undefined)}
 </td>
 </tr>
 </table>
