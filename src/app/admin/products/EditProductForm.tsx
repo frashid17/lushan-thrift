@@ -4,15 +4,31 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import toast from 'react-hot-toast';
 import type { Product } from '@/types/database';
 
 const CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', 'Accessories'];
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'One Size'];
 
+async function parseJsonResponse(res: Response): Promise<Record<string, unknown> | null> {
+  const ct = res.headers.get('content-type') ?? '';
+  if (!ct.includes('application/json')) return null;
+  try {
+    return (await res.json()) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+function apiErrorMessage(body: Record<string, unknown> | null, fallback: string): string {
+  const err = body?.error;
+  if (typeof err !== 'string' || err.length > 200 || /[<>]/.test(err)) return fallback;
+  return err;
+}
+
 export function EditProductForm({ product }: { product: Product }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState(product.image_url);
   const [form, setForm] = useState({
     name: product.name,
@@ -29,16 +45,24 @@ export function EditProductForm({ product }: { product: Product }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setLoading(true);
+    setFormError(null);
     try {
       const fd = new FormData();
       fd.append('file', file);
       const res = await fetch('/api/upload', { method: 'POST', body: fd });
-      if (!res.ok) throw new Error('Upload failed');
-      const data = await res.json();
-      setImageUrl(data.url);
-      toast.success('Image uploaded');
+      const body = await parseJsonResponse(res);
+      if (!res.ok) {
+        setFormError(apiErrorMessage(body, 'Image upload failed.'));
+        return;
+      }
+      const url = body?.url;
+      if (typeof url !== 'string' || !url) {
+        setFormError('Image upload failed.');
+        return;
+      }
+      setImageUrl(url);
     } catch {
-      toast.error('Image upload failed');
+      setFormError('Image upload failed.');
     } finally {
       setLoading(false);
     }
@@ -46,8 +70,9 @@ export function EditProductForm({ product }: { product: Product }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError(null);
     if (!form.sizes.length) {
-      toast.error('Select at least one size');
+      setFormError('Select at least one size.');
       return;
     }
     setLoading(true);
@@ -62,15 +87,15 @@ export function EditProductForm({ product }: { product: Product }) {
           image_url: imageUrl,
         }),
       });
+      const body = await parseJsonResponse(res);
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed');
+        setFormError(apiErrorMessage(body, 'Could not update product.'));
+        return;
       }
-      toast.success('Product updated');
       router.push('/admin');
       router.refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update');
+    } catch {
+      setFormError('Could not update product.');
     } finally {
       setLoading(false);
     }
@@ -78,6 +103,11 @@ export function EditProductForm({ product }: { product: Product }) {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-xl space-y-4 rounded-lg border border-stone-200 bg-white p-6">
+      {formError && (
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+          {formError}
+        </p>
+      )}
       <div>
         <label className="block text-sm font-medium text-stone-700">Image</label>
         <div className="mt-1 flex items-center gap-4">
