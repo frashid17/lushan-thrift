@@ -41,13 +41,29 @@ export async function POST(
     user_id: string;
   };
 
+  /** Checkout email first (what the customer typed); fallback for legacy orders without it. */
   let accountEmail: string | null = null;
-  const { data: userRow } = await admin.from('users').select('email').eq('id', o.user_id).single();
-  if (userRow?.email) accountEmail = userRow.email;
+  const checkoutEmail = o.customer_email?.trim() || null;
+  if (!checkoutEmail) {
+    const { data: userRow } = await admin.from('users').select('email').eq('id', o.user_id).single();
+    if (userRow?.email) accountEmail = userRow.email.trim();
+  }
+  const notifyTo = checkoutEmail || accountEmail;
 
-  const notifyTo = o.customer_email?.trim() || accountEmail?.trim();
   if (notifyTo) {
-    await sendCustomerPaymentApprovedEmail({ to: notifyTo, orderId });
+    try {
+      await sendCustomerPaymentApprovedEmail({
+        to: notifyTo,
+        orderId,
+        emailSource: checkoutEmail ? 'checkout' : 'account',
+      });
+    } catch (err) {
+      console.error('[approve-payment] Customer confirmation email failed:', err);
+    }
+  } else {
+    console.warn('[approve-payment] No customer_email or user email; skipped payment-approved email', {
+      orderId,
+    });
   }
 
   return NextResponse.json({ ok: true });
