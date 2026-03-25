@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { formatKenyaDateTime } from '@/lib/datetime';
 import { ApprovePaymentButton } from './ApprovePaymentButton';
 
 export type AdminOrderCardData = {
@@ -62,12 +63,7 @@ export function AdminOrderCard({
           <p className="font-mono text-sm font-semibold text-stone-900">
             #{o.id.slice(0, 8).toUpperCase()}
           </p>
-          <p className="mt-0.5 text-xs text-stone-500">
-            {new Date(o.created_at).toLocaleString('en-KE', {
-              dateStyle: 'medium',
-              timeStyle: 'short',
-            })}
-          </p>
+          <p className="mt-0.5 text-xs text-stone-500">{formatKenyaDateTime(o.created_at)} EAT</p>
         </div>
         <PaymentStatusBadge status={o.payment_status} />
       </div>

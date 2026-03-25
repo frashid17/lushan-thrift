@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { formatKenyaDateTime } from '@/lib/datetime';
 
 const FONT =
   "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif";
@@ -108,7 +109,7 @@ async function sendMail(opts: { to: string; subject: string; html: string; text:
   const transporter = getTransporter();
   if (!transporter || !from) {
     console.warn(
-      '[email] Skipping send — set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS (app password), and EMAIL_FROM'
+      '[email] Skipping send — on Vercel add SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM (see .env.example). Without these, admin order emails are not sent.'
     );
     return;
   }
@@ -122,7 +123,7 @@ async function sendMail(opts: { to: string; subject: string; html: string; text:
       html: opts.html,
     });
   } catch (err) {
-    console.error('[email] sendMail failed', err);
+    console.error('[email] sendMail failed', { to: opts.to, subject: opts.subject, err });
   }
 }
 
@@ -232,6 +233,8 @@ function callout(html: string, variant: 'amber' | 'sky' | 'emerald'): string {
 export async function sendAdminNewOrderEmail(opts: {
   to: string;
   orderId: string;
+  /** ISO timestamp from DB — shown in email as Kenya time (EAT). */
+  placedAtIso: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string | null;
@@ -241,6 +244,7 @@ export async function sendAdminNewOrderEmail(opts: {
   deliveryType: string;
 }) {
   const shortId = opts.orderId.slice(0, 8).toUpperCase();
+  const placedKenya = formatKenyaDateTime(opts.placedAtIso);
   const customerLine = `${escapeHtml(opts.customerName)} · ${escapeHtml(opts.customerPhone)}${
     opts.customerEmail ? ` · <a href="mailto:${escapeHtml(opts.customerEmail)}" style="color:${STONE_900};text-decoration:underline;">${escapeHtml(opts.customerEmail)}</a>` : ''
   }`;
@@ -273,6 +277,7 @@ ${itemsRows}
 <span style="display:inline-block;padding:6px 12px;border-radius:999px;background-color:${STONE_100};color:${STONE_600};font-size:12px;font-weight:600;font-family:${FONT};letter-spacing:0.04em;">NEW ORDER</span>
 </p>
 ${rowLabelValue('Order reference', `<span style="font-family:ui-monospace,monospace;font-size:15px;font-weight:700;">#${escapeHtml(shortId)}</span><br><span style="font-size:13px;color:${STONE_500};word-break:break-all;">${escapeHtml(opts.orderId)}</span>`)}
+${rowLabelValue('Placed (Kenya time, EAT)', escapeHtml(placedKenya))}
 ${rowLabelValue('Customer', customerLine)}
 ${rowLabelValue('Delivery', `${escapeHtml(opts.deliveryType)} — ${escapeHtml(opts.deliveryLabel)}`)}
 ${itemsTable}
@@ -288,6 +293,7 @@ ${adminDashboardCta({ orderId: opts.orderId, mode: 'new_order' })}
     ``,
     `Order #${shortId}`,
     `Full ID: ${opts.orderId}`,
+    `Placed (Kenya, EAT): ${placedKenya}`,
     ``,
     `Customer: ${opts.customerName} · ${opts.customerPhone}${opts.customerEmail ? ` · ${opts.customerEmail}` : ''}`,
     `Delivery: ${opts.deliveryType} — ${opts.deliveryLabel}`,

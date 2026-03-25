@@ -11,6 +11,7 @@ import {
   StorefrontPage,
   StorefrontPanel,
 } from '@/components/layout/StorefrontChrome';
+import { formatKenyaDateTime } from '@/lib/datetime';
 import { MapPin, Package, Sparkles } from 'lucide-react';
 
 function paymentBadge(paymentStatus: string | undefined) {
@@ -94,11 +95,7 @@ export default async function OrderDetailPage({
               #{shortId}
             </h1>
             <p className="mt-2 text-sm text-stone-600">
-              Placed{' '}
-              {new Date(orderTyped.created_at).toLocaleString('en-KE', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
+              Placed {formatKenyaDateTime(orderTyped.created_at)} <span className="text-stone-400">(EAT)</span>
             </p>
           </div>
           <div className="flex flex-col items-start gap-3 sm:items-end">

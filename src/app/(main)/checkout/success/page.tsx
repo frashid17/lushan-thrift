@@ -8,6 +8,7 @@ import { productPrimaryImage } from '@/lib/product-images';
 import type { Order, OrderItem } from '@/types/database';
 import { CheckCircle2 } from 'lucide-react';
 import { StorefrontPage } from '@/components/layout/StorefrontChrome';
+import { formatKenyaDate } from '@/lib/datetime';
 
 export default async function CheckoutSuccessPage({
   searchParams,
@@ -79,9 +80,7 @@ export default async function CheckoutSuccessPage({
                 #{order.id.slice(0, 8).toUpperCase()}
               </span>
               <span className="text-stone-500">
-                {new Date(order.created_at).toLocaleDateString('en-KE', {
-                  dateStyle: 'medium',
-                })}
+                {formatKenyaDate(order.created_at)} <span className="text-stone-400">(EAT)</span>
               </span>
               <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-900">
                 Payment pending

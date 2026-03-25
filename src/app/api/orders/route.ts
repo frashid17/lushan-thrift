@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       delivery_lng: deliveryLng,
       delivery_address_label: deliveryAddressLabel,
     })
-    .select('id')
+    .select('id, created_at')
     .single();
 
   if (orderError || !order) {
@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
   }
 
   const orderId = order.id as string;
+  const orderCreatedAt = String((order as { created_at?: string }).created_at ?? '');
 
   const orderItemsPayload = safeItems.map((item) => ({
     order_id: orderId,
@@ -127,7 +128,11 @@ export async function POST(request: NextRequest) {
   // order exists — previously we cleared the cart before email, so a thrown send left the
   // user with an empty cart and a generic error.
   const adminEmail = process.env.ADMIN_ORDERS_EMAIL?.trim();
-  if (adminEmail) {
+  if (!adminEmail) {
+    console.warn(
+      '[POST /api/orders] ADMIN_ORDERS_EMAIL is not set — no admin new-order email will be sent. Add it in Vercel → Settings → Environment Variables.'
+    );
+  } else {
     const lines = safeItems.map((item) => ({
       name: String(item.product?.name ?? 'Item'),
       qty: item.quantity,
@@ -137,6 +142,7 @@ export async function POST(request: NextRequest) {
       await sendAdminNewOrderEmail({
         to: adminEmail,
         orderId,
+        placedAtIso: orderCreatedAt || new Date().toISOString(),
         customerName,
         customerPhone,
         customerEmail,

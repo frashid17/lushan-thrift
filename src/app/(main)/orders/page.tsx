@@ -5,6 +5,7 @@ import type { Order } from '@/types/database';
 import Link from 'next/link';
 import { Package } from 'lucide-react';
 import { StorefrontHero, StorefrontPage } from '@/components/layout/StorefrontChrome';
+import { formatKenyaDate } from '@/lib/datetime';
 
 export default async function OrdersPage() {
   const userId = await getSupabaseUserId();
@@ -90,13 +91,7 @@ export default async function OrdersPage() {
                     </span>
                   </p>
                   <p className="mt-1 text-sm font-semibold text-stone-900 line-clamp-2">{summary}</p>
-                  <p className="mt-1 text-xs text-stone-500">
-                    {new Date(order.created_at).toLocaleDateString('en-KE', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </p>
+                  <p className="mt-1 text-xs text-stone-500">{formatKenyaDate(order.created_at)} · EAT</p>
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="font-mono text-sm font-bold tabular-nums text-stone-900 sm:text-base">

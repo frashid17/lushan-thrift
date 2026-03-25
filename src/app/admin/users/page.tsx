@@ -1,4 +1,5 @@
 import { clerkClient } from '@clerk/nextjs/server';
+import { formatKenyaDate } from '@/lib/datetime';
 import { makeAdmin, removeAdmin } from './actions';
 import { AdminCallout, AdminHero, AdminStatBadge } from '../AdminChrome';
 
@@ -62,12 +63,7 @@ export default async function AdminUsersPage() {
                     )}
                     <p className="mt-1 text-xs text-stone-500 break-all">{primaryEmail}</p>
                     <p className="mt-1 text-xs text-stone-500">
-                      Joined{' '}
-                      {new Date(user.createdAt).toLocaleDateString('en-KE', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                      Joined {formatKenyaDate(new Date(user.createdAt))} (EAT)
                     </p>
                     <div className="mt-4 flex items-center justify-between gap-2 border-t border-stone-100 pt-3">
                       <span
@@ -152,11 +148,7 @@ export default async function AdminUsersPage() {
                             </span>
                           </td>
                           <td className="px-4 py-3.5 text-stone-600">
-                            {new Date(user.createdAt).toLocaleDateString('en-KE', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })}
+                            {formatKenyaDate(new Date(user.createdAt))}
                           </td>
                           <td className="px-4 py-3.5 text-right">
                             <form action={isAdminUser ? removeAdmin : makeAdmin} className="inline">
