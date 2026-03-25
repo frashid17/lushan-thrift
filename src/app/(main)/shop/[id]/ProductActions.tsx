@@ -114,14 +114,14 @@ export function ProductActions({ product }: { product: Product }) {
   }
 
   return (
-    <div className="mt-6 flex flex-wrap gap-3">
+    <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
       {product.availability && (
         <>
           <button
             type="button"
             onClick={handleBuyNow}
             disabled={loading}
-            className="rounded-md bg-stone-900 px-6 py-3 text-sm font-medium text-white hover:bg-stone-800 disabled:opacity-50"
+            className="inline-flex min-h-[48px] flex-1 items-center justify-center rounded-full bg-stone-900 px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-stone-800 disabled:opacity-50 sm:flex-initial sm:min-w-[140px]"
           >
             Buy now
           </button>
@@ -129,7 +129,7 @@ export function ProductActions({ product }: { product: Product }) {
             type="button"
             onClick={handleAddToCart}
             disabled={loading}
-            className="rounded-md border border-stone-300 px-6 py-3 text-sm font-medium text-stone-800 hover:bg-stone-100 disabled:opacity-50"
+            className="inline-flex min-h-[48px] flex-1 items-center justify-center rounded-full border-2 border-stone-200 bg-white px-8 py-3 text-sm font-semibold text-stone-800 transition hover:border-stone-300 hover:bg-stone-50 disabled:opacity-50 sm:flex-initial sm:min-w-[140px]"
           >
             Add to cart
           </button>
@@ -139,12 +139,12 @@ export function ProductActions({ product }: { product: Product }) {
         type="button"
         onClick={handleWishlist}
         disabled={loading}
-        className="flex items-center gap-2 rounded-md border border-stone-300 px-6 py-3 text-sm font-medium text-stone-700 hover:bg-stone-100 disabled:opacity-50"
+        className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border-2 border-stone-200 bg-white px-8 py-3 text-sm font-semibold text-stone-700 transition hover:border-rose-200 hover:bg-rose-50/40 disabled:opacity-50"
       >
         <Heart
           className={`h-4 w-4 ${inWishlist ? 'fill-rose-500 text-rose-500' : ''}`}
         />
-        {inWishlist ? 'In wishlist' : 'Add to wishlist'}
+        {inWishlist ? 'In wishlist' : 'Wishlist'}
       </button>
     </div>
   );
