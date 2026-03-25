@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getSupabaseUserId } from '@/lib/supabase/get-user-id';
 import type { Order } from '@/types/database';
 import Link from 'next/link';
+import { Package } from 'lucide-react';
+import { StorefrontHero, StorefrontPage } from '@/components/layout/StorefrontChrome';
 
 export default async function OrdersPage() {
   const userId = await getSupabaseUserId();
@@ -26,33 +28,36 @@ export default async function OrdersPage() {
 
   if (!list.length) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12 text-center sm:px-6">
-        <h1 className="text-3xl font-bold text-stone-900 sm:text-4xl">
-          My orders
-        </h1>
-        <p className="mt-3 text-base text-stone-600">
-          You haven&apos;t placed any orders yet.
-        </p>
-        <Link
-          href="/shop"
-          className="mt-6 inline-flex items-center justify-center rounded-full bg-stone-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-stone-800"
-        >
-          Start shopping
-        </Link>
-      </div>
+      <StorefrontPage variant="narrow">
+        <StorefrontHero
+          eyebrow="Account"
+          title="My orders"
+          description="When you place an order, it will show up here with payment status and details."
+        />
+        <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50/80 px-6 py-14 text-center">
+          <Package className="mx-auto h-12 w-12 text-stone-200" strokeWidth={1.25} aria-hidden />
+          <p className="mt-4 text-sm font-semibold text-stone-800">No orders yet</p>
+          <p className="mt-1 text-sm text-stone-500">Start with something you love from the shop.</p>
+          <Link
+            href="/shop"
+            className="mt-8 inline-flex min-h-[48px] items-center justify-center rounded-full bg-stone-900 px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-stone-800"
+          >
+            Start shopping
+          </Link>
+        </div>
+      </StorefrontPage>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900 sm:text-3xl">
-        My orders
-      </h1>
-      <p className="mt-2 text-sm text-stone-600 sm:text-base">
-        A history of your recent Lushan Thrift orders.
-      </p>
+    <StorefrontPage variant="narrow">
+      <StorefrontHero
+        eyebrow="Account"
+        title="My orders"
+        description="Tap an order to see items, delivery info, and M-Pesa status."
+      />
 
-      <div className="mt-6 space-y-4">
+      <div className="space-y-4">
         {list.map((order) => {
           const items = order.order_items ?? [];
           const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
@@ -74,20 +79,18 @@ export default async function OrdersPage() {
             <Link
               key={order.id}
               href={`/orders/${order.id}`}
-              className="block rounded-2xl border border-stone-200 bg-white p-4 text-left shadow-sm hover:shadow-md"
+              className="block rounded-2xl border border-stone-200/90 bg-white p-5 text-left shadow-sm ring-1 ring-stone-100/80 transition hover:-translate-y-0.5 hover:shadow-md"
             >
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium uppercase tracking-wide text-stone-500">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-stone-400">
                     Order{' '}
-                    <span className="font-mono text-stone-800">
+                    <span className="font-mono text-stone-700">
                       #{order.id.slice(0, 8).toUpperCase()}
                     </span>
                   </p>
-                  <p className="mt-1 text-sm font-medium text-stone-900 line-clamp-1">
-                    {summary}
-                  </p>
-                  <p className="mt-0.5 text-xs text-stone-500">
+                  <p className="mt-1 text-sm font-semibold text-stone-900 line-clamp-2">{summary}</p>
+                  <p className="mt-1 text-xs text-stone-500">
                     {new Date(order.created_at).toLocaleDateString('en-KE', {
                       year: 'numeric',
                       month: 'short',
@@ -95,24 +98,24 @@ export default async function OrdersPage() {
                     })}
                   </p>
                 </div>
-                <div className="text-right text-sm flex-shrink-0">
-                  <p className="font-semibold text-stone-900">
+                <div className="shrink-0 text-right">
+                  <p className="font-mono text-sm font-bold tabular-nums text-stone-900 sm:text-base">
                     KES {total.toLocaleString()}
                   </p>
                   <p
-                    className={`mt-1 text-xs font-medium ${
+                    className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${
                       order.payment_status === 'approved'
-                        ? 'text-green-700'
+                        ? 'bg-emerald-100 text-emerald-900'
                         : order.payment_status === 'submitted'
-                          ? 'text-sky-800'
-                          : 'text-amber-800'
+                          ? 'bg-sky-100 text-sky-900'
+                          : 'bg-amber-100 text-amber-900'
                     }`}
                   >
                     {order.payment_status === 'approved'
-                      ? 'Payment approved'
+                      ? 'Paid'
                       : order.payment_status === 'submitted'
-                        ? 'Awaiting verification'
-                        : 'Payment pending'}
+                        ? 'Verifying'
+                        : 'Pending'}
                   </p>
                 </div>
               </div>
@@ -120,7 +123,6 @@ export default async function OrdersPage() {
           );
         })}
       </div>
-    </div>
+    </StorefrontPage>
   );
 }
-
