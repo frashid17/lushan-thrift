@@ -13,6 +13,8 @@ export interface Product {
   description: string;
   price: number;
   image_url: string;
+  /** Ordered image URLs; first matches `image_url` (primary). */
+  gallery_urls?: string[] | null;
   category: string;
   size: string;
   availability: boolean;
@@ -41,6 +43,8 @@ export interface ProductInsert {
   description: string;
   price: number;
   image_url: string;
+  /** When set, first entry is primary; `image_url` can mirror it. */
+  gallery_urls?: string[];
   category: string;
   size: string;
   availability: boolean;
