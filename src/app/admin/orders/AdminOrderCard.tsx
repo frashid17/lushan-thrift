@@ -46,7 +46,10 @@ export function AdminOrderCard({ o }: { o: AdminOrderCardData }) {
   const emailLine = o.customer_email ?? o.accountEmail ?? null;
 
   return (
-    <article className="flex flex-col rounded-2xl border border-stone-200 bg-white p-4 shadow-sm ring-1 ring-black/[0.02] sm:p-5">
+    <article
+      id={`order-${o.id}`}
+      className="scroll-mt-28 flex flex-col rounded-2xl border border-stone-200 bg-white p-4 shadow-sm ring-1 ring-black/[0.02] sm:p-5"
+    >
       <div className="flex flex-wrap items-start justify-between gap-2 border-b border-stone-100 pb-3">
         <div>
           <p className="font-mono text-sm font-semibold text-stone-900">
