@@ -38,6 +38,13 @@ export async function POST(request: NextRequest) {
   if (!customerName || !customerPhone) {
     return NextResponse.json({ error: 'Name and phone are required' }, { status: 400 });
   }
+  if (!customerEmail) {
+    return NextResponse.json({ error: 'Email is required for order updates and payment confirmation' }, { status: 400 });
+  }
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail);
+  if (!emailOk) {
+    return NextResponse.json({ error: 'Please enter a valid email address' }, { status: 400 });
+  }
   if (!Number.isFinite(deliveryLat) || !Number.isFinite(deliveryLng)) {
     return NextResponse.json({ error: 'Please choose a location on the map' }, { status: 400 });
   }
