@@ -53,13 +53,14 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-stone-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-3">
-          <div className="relative h-9 w-9 overflow-hidden rounded-full bg-stone-900 shadow-sm">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-stone-200/80">
             <Image
-              src="/logo1.png"
+              src="/icons/icon.svg"
               alt="Lushan Thrift logo"
-              fill
-              className="object-cover"
-              sizes="36px"
+              width={36}
+              height={36}
+              className="h-8 w-8 object-contain"
+              unoptimized
             />
           </div>
           <div className="leading-tight">
