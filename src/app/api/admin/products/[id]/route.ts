@@ -1,4 +1,5 @@
 import { checkRole } from '@/lib/roles';
+import { normalizeGalleryUrls } from '@/lib/product-images';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextRequest, NextResponse } from 'next/server';
 import type { ProductUpdate } from '@/types/database';
@@ -11,11 +12,26 @@ export async function PATCH(
     const isAdmin = await checkRole('admin');
     if (!isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     const { id } = await params;
-    const body = (await request.json()) as ProductUpdate;
+    const raw = (await request.json()) as ProductUpdate & { gallery_urls?: unknown };
+    const { gallery_urls: _g, ...rest } = raw;
+    const updates: Record<string, unknown> = { ...rest };
+    const hasGalleryKey = Object.prototype.hasOwnProperty.call(raw, 'gallery_urls');
+    const gallery = hasGalleryKey ? normalizeGalleryUrls(raw.gallery_urls) : null;
+    if (hasGalleryKey) {
+      if (!gallery) {
+        return NextResponse.json({ error: 'gallery_urls must be a non-empty array of URLs' }, { status: 400 });
+      }
+      updates.image_url = gallery[0];
+      updates.gallery_urls = gallery;
+    } else if (typeof raw.image_url === 'string' && raw.image_url.trim()) {
+      const u = raw.image_url.trim();
+      updates.image_url = u;
+      updates.gallery_urls = [u];
+    }
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('products')
-      .update(body)
+      .update(updates)
       .eq('id', id)
       .select()
       .single();
