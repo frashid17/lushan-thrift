@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ApprovePaymentButton } from './ApprovePaymentButton';
 
 export type AdminOrderCardData = {
@@ -42,13 +43,19 @@ function PaymentStatusBadge({ status }: { status: string }) {
   );
 }
 
-export function AdminOrderCard({ o }: { o: AdminOrderCardData }) {
+export function AdminOrderCard({
+  o,
+  footerExtra,
+}: {
+  o: AdminOrderCardData;
+  footerExtra?: ReactNode;
+}) {
   const emailLine = o.customer_email ?? o.accountEmail ?? null;
 
   return (
     <article
       id={`order-${o.id}`}
-      className="scroll-mt-28 flex flex-col rounded-2xl border border-stone-200 bg-white p-4 shadow-sm ring-1 ring-black/[0.02] sm:p-5"
+      className="scroll-mt-28 flex flex-col rounded-2xl border border-stone-200/90 bg-white p-4 shadow-sm ring-1 ring-stone-100/80 transition hover:shadow-md sm:p-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-2 border-b border-stone-100 pb-3">
         <div>
@@ -99,6 +106,7 @@ export function AdminOrderCard({ o }: { o: AdminOrderCardData }) {
         ) : (
           <p className="text-sm text-stone-500">Waiting for customer to pay and submit M-Pesa details.</p>
         )}
+        {footerExtra && <div className="pt-2">{footerExtra}</div>}
       </div>
     </article>
   );
