@@ -15,6 +15,11 @@ export const metadata: Metadata = {
     'Shop pre-loved thrift clothing in Mombasa and across Kenya. Sustainable fashion, unique finds.',
   manifest: '/manifest.json',
   appleWebApp: { capable: true, title: 'Lushan Thrift' },
+  icons: {
+    icon: [{ url: '/icons/icon.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/icons/icon.svg', type: 'image/svg+xml', sizes: '180x180' }],
+    shortcut: '/icons/icon.svg',
+  },
 };
 
 export const viewport: Viewport = {
