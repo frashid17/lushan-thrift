@@ -1,12 +1,45 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { sendAdminNewOrderEmail } from '@/lib/email';
 import { getSupabaseUserId } from '@/lib/supabase/get-user-id';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(_req: NextRequest) {
+type CheckoutBody = {
+  customerName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  deliveryType?: 'pickup' | 'shipping';
+  deliveryLat?: number;
+  deliveryLng?: number;
+  deliveryAddressLabel?: string;
+};
+
+export async function POST(request: NextRequest) {
   const userId = await getSupabaseUserId();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  let body: CheckoutBody;
+  try {
+    body = (await request.json()) as CheckoutBody;
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  const customerName = body.customerName?.trim();
+  const customerPhone = body.customerPhone?.trim();
+  const customerEmail = body.customerEmail?.trim() || null;
+  const deliveryType = body.deliveryType === 'pickup' ? 'pickup' : 'shipping';
+  const deliveryLat = Number(body.deliveryLat);
+  const deliveryLng = Number(body.deliveryLng);
+  const deliveryAddressLabel = body.deliveryAddressLabel?.trim() || 'Location on map';
+
+  if (!customerName || !customerPhone) {
+    return NextResponse.json({ error: 'Name and phone are required' }, { status: 400 });
+  }
+  if (!Number.isFinite(deliveryLat) || !Number.isFinite(deliveryLng)) {
+    return NextResponse.json({ error: 'Please choose a location on the map' }, { status: 400 });
   }
 
   const supabase = await createClient();
@@ -39,7 +72,15 @@ export async function POST(_req: NextRequest) {
     .insert({
       user_id: userId,
       total: Math.round(subtotal * 100) / 100,
-      status: 'paid_simulated',
+      status: 'placed',
+      payment_status: 'pending',
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_email: customerEmail,
+      delivery_type: deliveryType,
+      delivery_lat: deliveryLat,
+      delivery_lng: deliveryLng,
+      delivery_address_label: deliveryAddressLabel,
     })
     .select('id')
     .single();
@@ -54,16 +95,16 @@ export async function POST(_req: NextRequest) {
     );
   }
 
+  const orderId = order.id as string;
+
   const orderItemsPayload = safeItems.map((item) => ({
-    order_id: order.id,
+    order_id: orderId,
     product_id: item.product_id,
     quantity: item.quantity,
     unit_price: Number(item.product?.price ?? 0),
   }));
 
-  const { error: orderItemsError } = await admin
-    .from('order_items')
-    .insert(orderItemsPayload);
+  const { error: orderItemsError } = await admin.from('order_items').insert(orderItemsPayload);
 
   if (orderItemsError) {
     return NextResponse.json(
@@ -77,6 +118,25 @@ export async function POST(_req: NextRequest) {
 
   await admin.from('cart_items').delete().eq('user_id', userId);
 
-  return NextResponse.json({ orderId: order.id });
-}
+  const adminEmail = process.env.ADMIN_ORDERS_EMAIL?.trim();
+  if (adminEmail) {
+    const lines = safeItems.map((item) => ({
+      name: String(item.product?.name ?? 'Item'),
+      qty: item.quantity,
+      lineTotal: Math.round(Number(item.product?.price ?? 0) * item.quantity * 100) / 100,
+    }));
+    await sendAdminNewOrderEmail({
+      to: adminEmail,
+      orderId,
+      customerName,
+      customerPhone,
+      customerEmail,
+      totalKes: Math.round(subtotal * 100) / 100,
+      lines,
+      deliveryLabel: deliveryAddressLabel,
+      deliveryType,
+    });
+  }
 
+  return NextResponse.json({ orderId });
+}
