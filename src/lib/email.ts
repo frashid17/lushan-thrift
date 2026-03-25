@@ -36,6 +36,23 @@ function adminOrdersUrl(orderId?: string): string {
   return `${path}#order-${orderId}`;
 }
 
+/** Absolute URL to storefront logo (SVG). Same as site favicon / header. */
+function emailLogoUrl(): string {
+  return `${getPublicSiteUrl()}/icons/icon.svg`;
+}
+
+/** Header brand row: logo image + name (admin & customer emails). */
+function emailBrandHeaderHtml(): string {
+  const src = escapeHtml(emailLogoUrl());
+  const img = `<img src="${src}" alt="Lushan Thrift" width="40" height="40" style="display:block;width:40px;height:40px;border-radius:10px;object-fit:contain;" />`;
+  return `<table cellspacing="0" cellpadding="0" border="0" role="presentation">
+<tr>
+<td valign="middle" style="padding-right:12px;">${img}</td>
+<td valign="middle"><span style="font-family:${FONT};font-size:19px;font-weight:700;color:${WARM_WHITE};line-height:1.2;">Lushan Thrift</span></td>
+</tr>
+</table>`;
+}
+
 /** Bulletproof CTA + fallback link for admin emails */
 function adminDashboardCta(opts: { orderId: string; mode: 'new_order' | 'verify_payment' }): string {
   const url = adminOrdersUrl(opts.orderId);
@@ -146,8 +163,7 @@ function emailDocument(opts: {
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
 <tr>
 <td valign="middle">
-<span style="display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;background:${WARM_WHITE};color:${STONE_900};border-radius:50%;font-size:15px;font-weight:700;font-family:Georgia,'Times New Roman',serif;">LT</span>
-<span style="font-family:${FONT};font-size:19px;font-weight:700;color:${WARM_WHITE};padding-left:12px;vertical-align:middle;">Lushan Thrift</span>
+${emailBrandHeaderHtml()}
 </td>
 </tr>
 </table>
