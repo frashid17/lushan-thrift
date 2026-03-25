@@ -48,12 +48,31 @@ export interface ProductInsert {
 
 export interface ProductUpdate extends Partial<ProductInsert> {}
 
+export type OrderPaymentStatus = 'pending' | 'submitted' | 'approved';
+
 export interface Order {
   id: string;
   user_id: string;
   total: number;
   status: string;
   created_at: string;
+  delivery_lat?: number;
+  delivery_lng?: number;
+  delivery_address_label?: string | null;
+  customer_name?: string;
+  customer_phone?: string;
+  customer_email?: string | null;
+  delivery_type?: 'pickup' | 'shipping';
+  payment_status?: OrderPaymentStatus;
+  mpesa_message?: string | null;
+  mpesa_sender_name?: string | null;
+}
+
+export interface PaymentSettingsRow {
+  id: number;
+  mpesa_buy_goods: string;
+  mpesa_till_name: string;
+  updated_at: string;
 }
 
 export interface OrderItem {
