@@ -50,8 +50,8 @@ export function AdminProductsTable({ products }: { products: Product[] }) {
 
   return (
     <div className="space-y-4">
-      {/* Mobile cards */}
-      <div className="space-y-3 sm:hidden">
+      {/* Mobile / tablet cards */}
+      <div className="space-y-3 lg:hidden">
         {list.map((product) => (
           <div
             key={product.id}
@@ -110,8 +110,8 @@ export function AdminProductsTable({ products }: { products: Product[] }) {
         ))}
       </div>
 
-      {/* Desktop table */}
-      <div className="overflow-hidden rounded-lg border border-stone-200 bg-white hidden sm:block">
+      {/* Large screens table */}
+      <div className="hidden overflow-hidden rounded-lg border border-stone-200 bg-white lg:block">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-stone-200">
             <thead>
