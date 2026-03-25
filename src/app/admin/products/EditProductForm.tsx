@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import type { Product } from '@/types/database';
+import { productImageGallery } from '@/lib/product-images';
+import { AdminProductImagesField } from './AdminProductImagesField';
 
 const CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', 'Accessories'];
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'One Size'];
@@ -29,7 +30,7 @@ export function EditProductForm({ product }: { product: Product }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState(product.image_url);
+  const [images, setImages] = useState(() => productImageGallery(product));
   const [form, setForm] = useState({
     name: product.name,
     description: product.description ?? '',
@@ -41,26 +42,29 @@ export function EditProductForm({ product }: { product: Product }) {
     availability: product.availability,
   });
 
-  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handlePickFiles(files: FileList | null) {
+    if (!files?.length) return;
     setLoading(true);
     setFormError(null);
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
-      const body = await parseJsonResponse(res);
-      if (!res.ok) {
-        setFormError(apiErrorMessage(body, 'Image upload failed.'));
-        return;
+      const uploaded: string[] = [];
+      for (const file of Array.from(files)) {
+        const fd = new FormData();
+        fd.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        const body = await parseJsonResponse(res);
+        if (!res.ok) {
+          setFormError(apiErrorMessage(body, 'Image upload failed.'));
+          return;
+        }
+        const url = body?.url;
+        if (typeof url !== 'string' || !url) {
+          setFormError('Image upload failed.');
+          return;
+        }
+        uploaded.push(url);
       }
-      const url = body?.url;
-      if (typeof url !== 'string' || !url) {
-        setFormError('Image upload failed.');
-        return;
-      }
-      setImageUrl(url);
+      setImages((prev) => [...prev, ...uploaded]);
     } catch {
       setFormError('Image upload failed.');
     } finally {
@@ -71,6 +75,10 @@ export function EditProductForm({ product }: { product: Product }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);
+    if (!images.length) {
+      setFormError('Keep at least one product image.');
+      return;
+    }
     if (!form.sizes.length) {
       setFormError('Select at least one size.');
       return;
@@ -81,10 +89,13 @@ export function EditProductForm({ product }: { product: Product }) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...form,
+          name: form.name,
+          description: form.description,
+          category: form.category,
+          availability: form.availability,
           price: parseFloat(form.price) || 0,
           size: form.sizes.join(', '),
-          image_url: imageUrl,
+          gallery_urls: images,
         }),
       });
       const body = await parseJsonResponse(res);
@@ -108,21 +119,12 @@ export function EditProductForm({ product }: { product: Product }) {
           {formError}
         </p>
       )}
-      <div>
-        <label className="block text-sm font-medium text-stone-700">Image</label>
-        <div className="mt-1 flex items-center gap-4">
-          <div className="relative h-24 w-24 overflow-hidden rounded bg-stone-100">
-            <Image src={imageUrl} alt={product.name} fill className="object-cover" />
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            disabled={loading}
-            className="text-sm text-stone-600 file:rounded file:border-0 file:bg-stone-100 file:px-3 file:py-2"
-          />
-        </div>
-      </div>
+      <AdminProductImagesField
+        images={images}
+        onChange={setImages}
+        disabled={loading}
+        onPickFiles={handlePickFiles}
+      />
       <div>
         <label className="block text-sm font-medium text-stone-700">Name</label>
         <input
@@ -163,7 +165,9 @@ export function EditProductForm({ product }: { product: Product }) {
             className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2 text-stone-900"
           >
             {CATEGORIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </select>
         </div>
