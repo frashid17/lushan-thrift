@@ -2,19 +2,16 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
-const CATEGORIES = [
-  'All',
-  'Tops',
-  'Bottoms',
-  'Dresses',
-  'Outerwear',
-  'Shoes',
-  'Accessories',
-];
-
-export function ShopFilters({ currentCategory }: { currentCategory?: string }) {
+export function ShopFilters({
+  currentCategory,
+  categories,
+}: {
+  currentCategory?: string;
+  categories: string[];
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pills = ['All', ...categories];
 
   function setCategory(cat: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -25,7 +22,7 @@ export function ShopFilters({ currentCategory }: { currentCategory?: string }) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      {CATEGORIES.map((cat) => {
+      {pills.map((cat) => {
         const active = (cat === 'All' && !currentCategory) || currentCategory === cat;
         return (
           <button
