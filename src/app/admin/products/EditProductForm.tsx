@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Product } from '@/types/database';
 import { productImageGallery } from '@/lib/product-images';
 import { AdminProductImagesField } from './AdminProductImagesField';
 
-const CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', 'Accessories'];
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'One Size'];
 
 async function parseJsonResponse(res: Response): Promise<Record<string, unknown> | null> {
@@ -31,6 +30,7 @@ export function EditProductForm({ product }: { product: Product }) {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [images, setImages] = useState(() => productImageGallery(product));
+  const [categories, setCategories] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: product.name,
     description: product.description ?? '',
@@ -41,6 +41,21 @@ export function EditProductForm({ product }: { product: Product }) {
       : ([] as string[]),
     availability: product.availability,
   });
+
+  useEffect(() => {
+    fetch('/api/product-categories')
+      .then((r) => r.json())
+      .then((rows: { name: string }[]) => {
+        const names = Array.isArray(rows) ? rows.map((x) => x.name).filter(Boolean) : [];
+        const merged = [...new Set([...names, product.category].filter(Boolean))].sort((a, b) =>
+          a.localeCompare(b)
+        );
+        setCategories(merged);
+      })
+      .catch(() => {
+        setCategories(product.category ? [product.category] : []);
+      });
+  }, [product.category]);
 
   async function handlePickFiles(files: FileList | null) {
     if (!files?.length) return;
@@ -81,6 +96,10 @@ export function EditProductForm({ product }: { product: Product }) {
     }
     if (!form.sizes.length) {
       setFormError('Select at least one size.');
+      return;
+    }
+    if (!form.category.trim()) {
+      setFormError('Select a category (add categories in Admin → Categories if the list is empty).');
       return;
     }
     setLoading(true);
@@ -164,7 +183,10 @@ export function EditProductForm({ product }: { product: Product }) {
             onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
             className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2 text-stone-900"
           >
-            {CATEGORIES.map((c) => (
+            {categories.length === 0 && (
+              <option value="">— Add categories first —</option>
+            )}
+            {categories.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
