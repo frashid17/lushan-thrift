@@ -62,6 +62,14 @@ export default async function ShopPage({
   searchParams: Promise<{ category?: string; search?: string }>;
 }) {
   const { category, search } = await searchParams;
+  const supabaseForCats = await createClient();
+  const { data: catRows } = await supabaseForCats
+    .from('product_categories')
+    .select('name')
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true });
+  const categoryNames = (catRows ?? []).map((r: { name: string }) => r.name);
+
   const filterLabel = category
     ? `${category}`
     : search?.trim()
@@ -94,7 +102,7 @@ export default async function ShopPage({
             </p>
           </div>
         </div>
-        <ShopFilters currentCategory={category ?? undefined} />
+        <ShopFilters currentCategory={category ?? undefined} categories={categoryNames} />
       </section>
 
       <section>
