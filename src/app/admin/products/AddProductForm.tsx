@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AdminProductImagesField } from './AdminProductImagesField';
 
-const CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', 'Accessories'];
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'One Size'];
 
 async function parseJsonResponse(res: Response): Promise<Record<string, unknown> | null> {
@@ -29,14 +28,29 @@ export function AddProductForm() {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: '',
     description: '',
     price: '',
-    category: CATEGORIES[0],
+    category: '',
     sizes: [SIZES[0]] as string[],
     availability: true,
   });
+
+  useEffect(() => {
+    fetch('/api/product-categories')
+      .then((r) => r.json())
+      .then((rows: { name: string }[]) => {
+        const names = Array.isArray(rows) ? rows.map((x) => x.name).filter(Boolean) : [];
+        setCategories(names);
+        setForm((f) => ({
+          ...f,
+          category: names.includes(f.category) ? f.category : names[0] ?? '',
+        }));
+      })
+      .catch(() => {});
+  }, []);
 
   async function handlePickFiles(files: FileList | null) {
     if (!files?.length) return;
@@ -77,6 +91,10 @@ export function AddProductForm() {
     }
     if (!form.sizes.length) {
       setFormError('Select at least one size.');
+      return;
+    }
+    if (!form.category.trim()) {
+      setFormError('Select a category (add categories in Admin → Categories if the list is empty).');
       return;
     }
     setLoading(true);
@@ -160,7 +178,10 @@ export function AddProductForm() {
             onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
             className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2 text-stone-900"
           >
-            {CATEGORIES.map((c) => (
+            {categories.length === 0 && (
+              <option value="">— Add categories first —</option>
+            )}
+            {categories.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
