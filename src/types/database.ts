@@ -7,6 +7,13 @@ export interface User {
   created_at: string;
 }
 
+export interface ProductCategoryRow {
+  id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+}
+
 export interface Product {
   id: string;
   name: string;
