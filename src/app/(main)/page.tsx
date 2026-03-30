@@ -122,10 +122,9 @@ export default async function HomePage() {
               </div>
               <div className="min-w-0">
                 <h1 className="text-[1.75rem] font-bold leading-[1.1] tracking-tight text-stone-900 sm:text-4xl lg:text-[2.65rem] lg:leading-[1.08]">
-                  Thrift fashion
-                  <span className="text-stone-400">,</span>{' '}
+                  Thrift fashion{' '}
                   <span className="bg-gradient-to-r from-amber-700 via-stone-800 to-stone-900 bg-clip-text text-transparent">
-                    for wardrobes everywhere.
+                    for quality and pocket friendly.
                   </span>
                 </h1>
               </div>
