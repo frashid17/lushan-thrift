@@ -2,10 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   ArrowRight,
-  Footprints,
-  Gem,
   Heart,
-  Layers,
   Leaf,
   MapPin,
   Package,
@@ -13,7 +10,6 @@ import {
   Smartphone,
   Sparkles,
   Truck,
-  Wind,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { ProductCard } from '@/components/product/ProductCard';
@@ -21,6 +17,7 @@ import { ProductCardSkeleton } from '@/components/ui/ProductCardSkeleton';
 import { Suspense } from 'react';
 import { currentUser } from '@clerk/nextjs/server';
 import { SearchAutocomplete } from '@/components/SearchAutocomplete';
+import { categoryIconForLabel } from '@/lib/category-icons';
 
 async function FeaturedProducts() {
   const supabase = await createClient();
@@ -55,15 +52,6 @@ async function FeaturedProducts() {
   );
 }
 
-const CATEGORIES: { label: string; icon: typeof Shirt }[] = [
-  { label: 'Tops', icon: Shirt },
-  { label: 'Bottoms', icon: Layers },
-  { label: 'Dresses', icon: Sparkles },
-  { label: 'Outerwear', icon: Wind },
-  { label: 'Shoes', icon: Footprints },
-  { label: 'Accessories', icon: Gem },
-];
-
 export default async function HomePage() {
   let isSignedIn = false;
   try {
@@ -74,12 +62,17 @@ export default async function HomePage() {
   }
 
   const supabase = await createClient();
-  const { count: liveCount } = await supabase
-    .from('products')
-    .select('*', { count: 'exact', head: true })
-    .eq('availability', true);
+  const [{ count: liveCount }, { data: categoryRows }] = await Promise.all([
+    supabase.from('products').select('*', { count: 'exact', head: true }).eq('availability', true),
+    supabase
+      .from('product_categories')
+      .select('name')
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true }),
+  ]);
 
   const piecesLive = liveCount ?? 0;
+  const browseCategories = (categoryRows ?? []).map((r: { name: string }) => r.name);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
@@ -103,7 +96,7 @@ export default async function HomePage() {
             <div className="flex flex-wrap items-center gap-3">
               <span className="inline-flex items-center gap-2 rounded-full border border-amber-200/90 bg-white/90 px-3 py-1 text-xs font-semibold text-amber-950 shadow-sm backdrop-blur-sm">
                 <MapPin className="h-3.5 w-3.5 text-amber-700" aria-hidden />
-                Mombasa · Kenya
+                Based in Kenya · Ships worldwide
               </span>
               {piecesLive > 0 && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600/10 px-3 py-1 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-600/20">
@@ -132,15 +125,15 @@ export default async function HomePage() {
                   Thrift fashion
                   <span className="text-stone-400">,</span>{' '}
                   <span className="bg-gradient-to-r from-amber-700 via-stone-800 to-stone-900 bg-clip-text text-transparent">
-                    made for the coast.
+                    for wardrobes everywhere.
                   </span>
                 </h1>
               </div>
             </div>
 
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-stone-600 sm:text-base sm:leading-relaxed">
-              Curated pre-loved clothes from Mombasa and across Kenya. Unique finds, fair prices, and
-              less waste — shop looks that feel good on you and the planet.
+              Curated pre-loved pieces with worldwide shipping. Unique finds, fair prices, and less
+              waste — shop looks that feel good on you and the planet.
             </p>
 
             <div className="mt-6 rounded-2xl border border-stone-200/80 bg-white/85 p-1 shadow-sm backdrop-blur-sm ring-1 ring-white/60">
@@ -225,7 +218,7 @@ export default async function HomePage() {
                     <Shirt className="h-5 w-5 text-stone-600" aria-hidden />
                     <p className="mt-3 text-sm font-semibold text-stone-900">Sized for real life</p>
                     <p className="mt-1 text-xs leading-relaxed text-stone-600">
-                      S–XL and beyond, chosen for Kenya&apos;s heat and city days.
+                      S–XL and beyond — practical fits for everyday wear.
                     </p>
                   </div>
                 </div>
@@ -262,20 +255,29 @@ export default async function HomePage() {
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6">
-          {CATEGORIES.map(({ label, icon: Icon }) => (
-            <Link
-              key={label}
-              href={`/shop?category=${encodeURIComponent(label)}`}
-              className="group flex items-center gap-2.5 rounded-2xl border border-stone-200/90 bg-white px-3 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-md active:scale-[0.99]"
-            >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-600 transition group-hover:bg-stone-900 group-hover:text-white">
-                <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />
-              </span>
-              <span className="min-w-0 text-sm font-semibold text-stone-900">{label}</span>
-            </Link>
-          ))}
-        </div>
+        {browseCategories.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-stone-200 bg-stone-50/80 px-4 py-8 text-center text-sm text-stone-600">
+            Categories will appear here once they are added in Admin → Categories.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {browseCategories.map((label) => {
+              const Icon = categoryIconForLabel(label);
+              return (
+                <Link
+                  key={label}
+                  href={`/shop?category=${encodeURIComponent(label)}`}
+                  className="group flex items-center gap-2.5 rounded-2xl border border-stone-200/90 bg-white px-3 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-md active:scale-[0.99]"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-600 transition group-hover:bg-stone-900 group-hover:text-white">
+                    <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />
+                  </span>
+                  <span className="min-w-0 text-sm font-semibold text-stone-900">{label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* Featured */}
@@ -329,9 +331,9 @@ export default async function HomePage() {
             icon: MapPin,
             tint: 'text-sky-700',
             bg: 'bg-sky-50 ring-sky-100',
-            title: 'Curated for Kenya',
-            line: 'Styles that work for coast life.',
-            body: 'Breathable fabrics and practical fits for Mombasa heat and city days.',
+            title: 'Curated with care',
+            line: 'Pieces chosen for quality and character.',
+            body: 'Breathable fabrics and practical fits you can wear season after season.',
           },
           {
             icon: Smartphone,
