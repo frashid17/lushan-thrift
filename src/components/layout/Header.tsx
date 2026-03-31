@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { UserButton, SignInButton, useUser } from '@clerk/nextjs';
-import { ShoppingBag, Heart } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Heart } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { useCartStore } from '@/store/cart-store';
@@ -135,11 +135,13 @@ export function Header() {
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className={`hidden rounded-full px-3.5 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-50 hover:text-amber-800 sm:inline-flex ${
-                    onAdmin ? 'bg-amber-50' : ''
+                  className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-amber-200/90 bg-amber-50/90 px-2.5 py-1.5 text-xs font-semibold text-amber-900 shadow-sm hover:bg-amber-100 sm:min-h-0 sm:px-3.5 sm:py-1.5 sm:text-sm ${
+                    onAdmin ? 'ring-2 ring-amber-300/80' : ''
                   }`}
+                  aria-label="Admin panel"
                 >
-                  Admin
+                  <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden />
+                  <span>Admin</span>
                 </Link>
               )}
             </>
